@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
+import '../../theme/epidemiology_theme.dart';
 
 /// Titre de section de navigation (libellé en petites capitales avec
 /// liseré d'accent).

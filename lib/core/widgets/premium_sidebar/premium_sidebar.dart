@@ -1,44 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
-import 'sidebar_footer.dart';
-import 'sidebar_header.dart';
-import 'sidebar_models.dart';
-import 'sidebar_nav_item.dart';
-import 'sidebar_quick_actions.dart';
-import 'sidebar_section_title.dart';
-import 'sidebar_stats_card.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_footer.dart';
+import 'premium_sidebar_header.dart';
+import 'premium_sidebar_models.dart';
+import 'premium_sidebar_nav_item.dart';
+import 'premium_sidebar_quick_actions.dart';
+import 'premium_sidebar_section_title.dart';
+import 'premium_sidebar_stats_card.dart';
 
-/// Sidebar premium du module « Vaccination antirabique ».
+/// Sidebar premium de la plateforme, générique sur la destination [T].
 ///
-/// Assemble l'identité de marque, la navigation principale (avec badges et
-/// indicateurs), les actions rapides, le résumé du centre et la zone de
-/// contexte. Supporte un mode réduit (icônes seules) pour les écrans moyens.
-class AntirabiqueSidebar extends StatefulWidget {
-  final List<SidebarSection> sections;
-  final AntirabiqueDestination current;
-  final ValueChanged<AntirabiqueDestination> onNavigate;
+/// Chaque module reutilise ce composant en fournissant son [SidebarIdentity]
+/// (titre, sous-titre, pictogramme, centre) et ses sections / actions /
+/// stats. Assemble l'identité de marque, la navigation principale (avec
+/// badges et indicateurs), les actions rapides, le résumé du centre et la
+/// zone de contexte. Supporte un mode réduit (icônes seules).
+class PremiumSidebar<T> extends StatefulWidget {
+  final SidebarIdentity identity;
+  final List<SidebarSection<T>> sections;
+  final T current;
+  final ValueChanged<T> onNavigate;
   final List<SidebarQuickAction> quickActions;
   final List<SidebarStatsEntry> stats;
+  final String statsTitle;
   final bool collapsed;
   final VoidCallback? onToggleCollapsed;
 
-  const AntirabiqueSidebar({
+  const PremiumSidebar({
     super.key,
+    required this.identity,
     required this.sections,
     required this.current,
     required this.onNavigate,
     this.quickActions = const [],
     this.stats = const [],
+    this.statsTitle = 'RÉSUMÉ DU CENTRE',
     this.collapsed = false,
     this.onToggleCollapsed,
   });
 
   @override
-  State<AntirabiqueSidebar> createState() => _AntirabiqueSidebarState();
+  State<PremiumSidebar<T>> createState() => _PremiumSidebarState<T>();
 }
 
-class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
+class _PremiumSidebarState<T> extends State<PremiumSidebar<T>> {
   @override
   Widget build(BuildContext context) {
     final collapsed = widget.collapsed;
@@ -62,7 +68,11 @@ class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(collapsed ? 8 : 16, 16, collapsed ? 8 : 16, 14),
-            child: SidebarHeader(collapsed: collapsed, onToggle: widget.onToggleCollapsed),
+            child: SidebarHeader(
+              identity: widget.identity,
+              collapsed: collapsed,
+              onToggle: widget.onToggleCollapsed,
+            ),
           ),
           if (!collapsed)
             Padding(
@@ -80,7 +90,7 @@ class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
                     const SizedBox(height: 10),
                     SidebarQuickActions(actions: widget.quickActions),
                     const SizedBox(height: 6),
-                    SidebarStatsCard(stats: widget.stats),
+                    SidebarStatsCard(stats: widget.stats, title: widget.statsTitle),
                   ],
                 ],
               ),
@@ -91,7 +101,7 @@ class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               child: Divider(color: EpidemiologyTheme.warm150.withValues(alpha: 0.8), height: 1),
             ),
-          SidebarFooter(collapsed: collapsed),
+          SidebarFooter(identity: widget.identity, collapsed: collapsed),
         ],
       ),
     );
@@ -102,7 +112,7 @@ class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
     for (final section in widget.sections) {
       widgets.add(SidebarSectionTitle(title: section.title, collapsed: collapsed));
       for (final item in section.items) {
-        widgets.add(SidebarNavItem(
+        widgets.add(SidebarNavItem<T>(
           item: item,
           selected: item.destination == widget.current,
           collapsed: collapsed,
@@ -120,12 +130,12 @@ class _AntirabiqueSidebarState extends State<AntirabiqueSidebar> {
 
 /// Version compacte de la sidebar pour les largeurs moyennes : une fine
 /// rangée d'icônes reste visible quand l'espace est limité.
-class AntirabiqueSidebarRail extends StatelessWidget {
-  final List<SidebarNavItemModel> items;
-  final AntirabiqueDestination current;
-  final ValueChanged<AntirabiqueDestination> onNavigate;
+class PremiumSidebarRail<T> extends StatelessWidget {
+  final List<SidebarNavItemModel<T>> items;
+  final T current;
+  final ValueChanged<T> onNavigate;
 
-  const AntirabiqueSidebarRail({
+  const PremiumSidebarRail({
     super.key,
     required this.items,
     required this.current,
@@ -213,8 +223,7 @@ class _RailAccentBar extends StatelessWidget {
   }
 }
 
-/// Petit compteur dédié à l'en-tête compact (non utilisé directement par la
-/// sidebar, présent pour la cohérence visuelle des badges).
+/// Petit compteur dédié à l'en-tête compact (cohérence visuelle des badges).
 class SidebarMiniBadge extends StatelessWidget {
   final int count;
   final Color color;

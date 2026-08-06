@@ -1,20 +1,54 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
 import '../../domain/repositories/tetanus_repository.dart';
 import 'tetanus_patient_list_screen.dart';
-import 'tetanus_checklist_screen.dart';
+import 'tetanus_evaluation_screen.dart';
 import 'tetanus_historique_screen.dart';
 
-class TetanusHomeScreen extends StatefulWidget {
+/// Écran autonome du tableau de bord tétanos (utilisé en fallback / standalone
+/// ou pour les vues hors sidebar).
+class TetanusHomeScreen extends StatelessWidget {
   const TetanusHomeScreen({super.key});
 
   @override
-  State<TetanusHomeScreen> createState() => _TetanusHomeScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: EpidemiologyTheme.warm50,
+      appBar: AppBar(
+        title: Text(
+          'Tétanos post-exposition',
+          style: GoogleFonts.inter(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: EpidemiologyTheme.warm800,
+          ),
+        ),
+        centerTitle: false,
+        backgroundColor: EpidemiologyTheme.white,
+        surfaceTintColor: EpidemiologyTheme.white,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        shape: Border(
+          bottom: BorderSide(color: EpidemiologyTheme.warm100, width: 1),
+        ),
+      ),
+      body: const TetanusDashboardBody(),
+    );
+  }
 }
 
-class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
+/// Corps du tableau de bord tétanos, autonome (sans Scaffold) afin d'être
+/// embarqué dans la vue principale du layout à sidebar.
+class TetanusDashboardBody extends StatefulWidget {
+  const TetanusDashboardBody({super.key});
+
+  @override
+  State<TetanusDashboardBody> createState() => _TetanusDashboardBodyState();
+}
+
+class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
   final _repo = GetIt.instance<TetanusRepository>();
   late Map<String, int> _counts;
 
@@ -26,41 +60,23 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: EpidemiologyTheme.warm50,
-      appBar: AppBar(
-        title: Text(
-          'Tétanos post-exposition',
-          style: GoogleFonts.inter(
-            fontSize: 17, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm800),
-        ),
-        centerTitle: false,
-        backgroundColor: EpidemiologyTheme.white,
-        surfaceTintColor: EpidemiologyTheme.white,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        shape: Border(
-          bottom: BorderSide(color: EpidemiologyTheme.warm100, width: 1),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-        children: [
-          _buildHeroCard(),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Aperçu', Icons.dashboard_rounded),
-          const SizedBox(height: 14),
-          _buildKpiRow(),
-          const SizedBox(height: 28),
-          _buildSectionHeader('Accès rapide', Icons.quickreply_rounded),
-          const SizedBox(height: 14),
-          _buildQuickAccessGrid(),
-          const SizedBox(height: 28),
-          _buildSectionHeader('Conduite à tenir', Icons.medical_services_outlined),
-          const SizedBox(height: 14),
-          _buildDecisionCard(),
-        ],
-      ),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+      children: [
+        _buildHeroCard(),
+        const SizedBox(height: 24),
+        _buildSectionHeader('Aperçu', Icons.dashboard_rounded),
+        const SizedBox(height: 14),
+        _buildKpiRow(),
+        const SizedBox(height: 28),
+        _buildSectionHeader('Accès rapide', Icons.quickreply_rounded),
+        const SizedBox(height: 14),
+        _buildQuickAccessGrid(),
+        const SizedBox(height: 28),
+        _buildSectionHeader('Conduite à tenir', Icons.medical_services_outlined),
+        const SizedBox(height: 14),
+        _buildDecisionCard(),
+      ],
     );
   }
 
@@ -70,16 +86,19 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: EpidemiologyTheme.amber.withValues(alpha: 0.1),
+            color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: EpidemiologyTheme.amber),
+          child: Icon(icon, size: 16, color: EpidemiologyTheme.redPrimary),
         ),
         const SizedBox(width: 10),
         Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm800),
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: EpidemiologyTheme.warm800,
+          ),
         ),
       ],
     );
@@ -94,20 +113,16 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [EpidemiologyTheme.amber, EpidemiologyTheme.orange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: EpidemiologyTheme.primaryGradientWarm,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: EpidemiologyTheme.amber.withValues(alpha: 0.3),
+            color: EpidemiologyTheme.redDeep.withValues(alpha: 0.28),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
           BoxShadow(
-            color: EpidemiologyTheme.amber.withValues(alpha: 0.12),
+            color: EpidemiologyTheme.redDeep.withValues(alpha: 0.12),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -332,7 +347,7 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
   Widget _buildQuickAccessGrid() {
     final items = [
       _quickAccessTile(Icons.person_add_rounded, 'Nouveau patient', 'Checklist initiale',
-          const TetanusChecklistScreen()),
+          const TetanusEvaluationScreen()),
       _quickAccessTile(Icons.list_alt_rounded, 'Liste des cas', 'Consulter les patients',
           const TetanusPatientListScreen()),
       _quickAccessTile(Icons.vaccines_rounded, 'Enregistrer acte', 'VAT, Ig, rappel',
@@ -385,13 +400,16 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [EpidemiologyTheme.amber.withValues(alpha: 0.12), EpidemiologyTheme.orange.withValues(alpha: 0.06)],
+                    colors: [
+                      EpidemiologyTheme.redPrimary.withValues(alpha: 0.12),
+                      EpidemiologyTheme.redMedium.withValues(alpha: 0.06),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: EpidemiologyTheme.amber, size: 22),
+                child: Icon(icon, color: EpidemiologyTheme.redPrimary, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -437,7 +455,7 @@ class _TetanusHomeScreenState extends State<TetanusHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: EpidemiologyTheme.amber.withValues(alpha: 0.1),
+                  color: EpidemiologyTheme.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.medical_services_outlined,

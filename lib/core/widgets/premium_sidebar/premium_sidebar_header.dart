@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_models.dart';
 
-/// En-tête de marque premium de la sidebar antirabique.
+/// En-tête de marque premium de la sidebar plateforme.
+///
+/// L'identité (titre, sous-titre, pictogramme) est fournie par chaque module
+/// via [SidebarIdentity], garantissant un rendu unifié.
 class SidebarHeader extends StatelessWidget {
+  final SidebarIdentity identity;
   final bool collapsed;
   final VoidCallback? onToggle;
 
-  const SidebarHeader({super.key, this.collapsed = false, this.onToggle});
+  const SidebarHeader({
+    super.key,
+    required this.identity,
+    this.collapsed = false,
+    this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,22 +44,23 @@ class SidebarHeader extends StatelessWidget {
           ],
         ),
         child: collapsed
-            ? _CollapsedHeader(onToggle: onToggle)
-            : _ExpandedHeader(onToggle: onToggle),
+            ? _CollapsedHeader(identity: identity, onToggle: onToggle)
+            : _ExpandedHeader(identity: identity, onToggle: onToggle),
       ),
     );
   }
 }
 
 class _CollapsedHeader extends StatelessWidget {
-  const _CollapsedHeader({this.onToggle});
+  const _CollapsedHeader({required this.identity, this.onToggle});
+  final SidebarIdentity identity;
   final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _LogoMark(size: 40),
+        _LogoMark(icon: identity.icon, size: 40),
         const SizedBox(height: 18),
         IconButton(
           onPressed: onToggle,
@@ -63,7 +74,8 @@ class _CollapsedHeader extends StatelessWidget {
 }
 
 class _ExpandedHeader extends StatelessWidget {
-  const _ExpandedHeader({this.onToggle});
+  const _ExpandedHeader({required this.identity, this.onToggle});
+  final SidebarIdentity identity;
   final VoidCallback? onToggle;
 
   @override
@@ -74,14 +86,14 @@ class _ExpandedHeader extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _LogoMark(size: 46),
+            _LogoMark(icon: identity.icon, size: 46),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Vaccination\nAntirabique',
+                    identity.title,
                     style: GoogleFonts.cairo(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
@@ -92,7 +104,7 @@ class _ExpandedHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Service d’Épidémiologie',
+                    identity.subtitle,
                     style: GoogleFonts.cairo(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -115,29 +127,33 @@ class _ExpandedHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            _StatusChip(),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(20),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              const _StatusChip(),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_today, size: 12, color: Colors.white.withValues(alpha: 0.9)),
+                    const SizedBox(width: 5),
+                    Text(
+                      '${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}',
+                      style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.9)),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.calendar_today, size: 12, color: Colors.white.withValues(alpha: 0.9)),
-                  const SizedBox(width: 5),
-                  Text(
-                    '${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}',
-                    style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.9)),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -146,7 +162,8 @@ class _ExpandedHeader extends StatelessWidget {
 
 /// Pastille logo avec halo doux.
 class _LogoMark extends StatelessWidget {
-  const _LogoMark({required this.size});
+  const _LogoMark({required this.icon, required this.size});
+  final IconData icon;
   final double size;
 
   @override
@@ -165,13 +182,15 @@ class _LogoMark extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(Icons.biotech, color: Colors.white, size: size * 0.52),
+      child: Icon(icon, color: Colors.white, size: size * 0.52),
     );
   }
 }
 
 /// Petit badge de statut « En service ».
 class _StatusChip extends StatelessWidget {
+  const _StatusChip();
+
   @override
   Widget build(BuildContext context) {
     return Container(

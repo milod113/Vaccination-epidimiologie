@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
-import 'sidebar_models.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_models.dart';
 
-/// Carte de résumé contextuel : mini KPIs du centre présentés en 2×2.
+/// Carte de résumé contextuel : mini KPIs du centre présentés en 2x2.
 class SidebarStatsCard extends StatelessWidget {
   final List<SidebarStatsEntry> stats;
+  final String title;
 
-  const SidebarStatsCard({super.key, required this.stats});
+  const SidebarStatsCard({super.key, required this.stats, this.title = 'RÉSUMÉ DU CENTRE'});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class SidebarStatsCard extends StatelessWidget {
               Icon(Icons.insights, size: 14, color: EpidemiologyTheme.redPrimary),
               const SizedBox(width: 6),
               Text(
-                'RÉSUMÉ DU CENTRE',
+                title,
                 style: GoogleFonts.cairo(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,

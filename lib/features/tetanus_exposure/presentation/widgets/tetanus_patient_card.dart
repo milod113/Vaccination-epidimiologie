@@ -114,17 +114,17 @@ class TetanusPatientCard extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isUrgent
-              ? [EpidemiologyTheme.danger, EpidemiologyTheme.orange]
-              : [EpidemiologyTheme.amber, EpidemiologyTheme.orange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: isUrgent
+            ? LinearGradient(
+                colors: [EpidemiologyTheme.danger, EpidemiologyTheme.orange],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : EpidemiologyTheme.primaryGradient,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: (isUrgent ? EpidemiologyTheme.danger : EpidemiologyTheme.amber)
+            color: (isUrgent ? EpidemiologyTheme.danger : EpidemiologyTheme.redDeep)
                 .withValues(alpha: 0.25),
             blurRadius: 8,
             offset: const Offset(0, 3),

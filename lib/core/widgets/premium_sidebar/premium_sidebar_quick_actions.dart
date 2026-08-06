@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
-import 'sidebar_models.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_models.dart';
 
 /// Carte « Actions rapides » premium : actions clés du centre accessibles en
 /// un geste, présentées sous forme de tuiles colorées.
@@ -54,7 +54,7 @@ class SidebarQuickActions extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 1.7,
+            childAspectRatio: 1.45,
             children: actions.map((a) => _QuickActionTile(action: a)).toList(),
           ),
         ],

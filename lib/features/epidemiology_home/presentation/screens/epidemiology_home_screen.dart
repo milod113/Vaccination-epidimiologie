@@ -4,33 +4,107 @@ import '../../../../core/theme/epidemiology_theme.dart';
 import '../../data/models/epidemiology_dashboard_model.dart';
 import '../../domain/repositories/epidemiology_dashboard_repository.dart';
 import '../../../vaccination_antirabique/presentation/layout/antirabique_dashboard_layout.dart';
-import '../../../tetanus_exposure/presentation/screens/tetanus_home_screen.dart';
+import '../../../tetanus_exposure/presentation/layout/tetanus_dashboard_layout.dart';
 import '../../../hepatitis_b_exposure/presentation/screens/hepatitis_b_home_screen.dart';
 import '../../../travel_vaccination/presentation/screens/travel_vaccination_home_screen.dart';
+import '../../../vaccination_antirabique/presentation/screens/create_patient_screen.dart';
+import '../../../vaccination_antirabique/presentation/screens/tabs/scanner_lot_screen.dart';
 import '../../../../injection_container.dart' as di;
-import '../widgets/module_card.dart';
+import '../widgets/dashboard/platform_hero_header.dart';
+import '../widgets/dashboard/dashboard_kpi_card.dart';
+import '../widgets/dashboard/dashboard_section_title.dart';
+import '../widgets/dashboard/module_overview_card.dart';
+import '../widgets/dashboard/dashboard_module_grid.dart';
+import '../widgets/dashboard/quick_action_panel.dart';
+import '../widgets/dashboard/recent_alerts_panel.dart';
 
 class EpidemiologyHomeScreen extends StatefulWidget {
   const EpidemiologyHomeScreen({super.key});
 
   @override
-  State<EpidemiologyHomeScreen> createState() => _EpidemiologyHomeScreenState();
+  State<EpidemiologyHomeScreen> createState() =>
+      _EpidemiologyHomeScreenState();
 }
 
-class _EpidemiologyHomeScreenState extends State<EpidemiologyHomeScreen> {
+class _EpidemiologyHomeScreenState extends State<EpidemiologyHomeScreen>
+    with SingleTickerProviderStateMixin {
   EpidemiologyDashboardData? _data;
   bool _loading = true;
+
+  late final AnimationController _revealController;
+  late final Animation<double> _revealAnimation;
+
+  final _scrollController = ScrollController();
+  final _modulesKey = GlobalKey();
+  final _alertsKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _revealController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _revealAnimation = CurvedAnimation(
+      parent: _revealController,
+      curve: Curves.easeOutCubic,
+    );
     _load();
   }
 
   Future<void> _load() async {
     final repo = di.sl<EpidemiologyDashboardRepository>();
     final data = await repo.getDashboardData();
-    setState(() { _data = data; _loading = false; });
+    if (!mounted) return;
+    setState(() {
+      _data = data;
+      _loading = false;
+    });
+    _revealController.forward();
+  }
+
+  @override
+  void dispose() {
+    _revealController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // ── Révélation échelonnée d'une section ────────────────────────────
+  Widget _reveal(int index, Widget child) {
+    final start = (index * 0.14).clamp(0.0, 0.5);
+    final end = (start + 0.5).clamp(0.0, 1.0);
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _revealAnimation,
+        curve: Interval(start, end, curve: Curves.easeOut),
+      ),
+      child: child,
+    );
+  }
+
+  void _scrollTo(GlobalKey key) {
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutCubic,
+      alignment: 0.06,
+    );
+  }
+
+  String get _dateLabel {
+    final now = DateTime.now();
+    const days = [
+      'Dimanche', 'Lundi', 'Mardi', 'Mercredi',
+      'Jeudi', 'Vendredi', 'Samedi',
+    ];
+    const months = [
+      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    ];
+    return '${days[now.weekday % 7]}, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
   @override
@@ -47,351 +121,374 @@ class _EpidemiologyHomeScreenState extends State<EpidemiologyHomeScreen> {
 
   Widget _buildContent() {
     final data = _data!;
-    final isWide = MediaQuery.of(context).size.width > 600;
-
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 44),
       children: [
-        _buildHeroHeader(data),
-        const SizedBox(height: 28),
-        _buildKpiRow(data),
-        const SizedBox(height: 32),
-        _buildSectionTitle('Modules de vaccination'),
-        const SizedBox(height: 16),
-        _buildModuleGrid(isWide, data),
-        const SizedBox(height: 32),
-        _buildSectionTitle('Activité récente'),
-        const SizedBox(height: 16),
-        _buildActivitySection(data),
+        _reveal(
+          0,
+          PlatformHeroHeader(
+            platformName: 'Plateforme Vaccination',
+            subtitle: "Service d'Épidémiologie",
+            dateLabel: _dateLabel,
+            modulesActifs: data.modulesActifs,
+            modulesTotal: 4,
+            ctaLabel: 'Consulter les modules',
+            onCta: () => _scrollTo(_modulesKey),
+            servicesOperational: true,
+          ),
+        ),
+        const SizedBox(height: 26),
+        _reveal(1, _buildKpiSection(data)),
+        const SizedBox(height: 26),
+        _reveal(2, _buildMiddleBand(data)),
+        const SizedBox(height: 30),
+        _reveal(3, _buildModulesSection(data)),
+        const SizedBox(height: 30),
+        _reveal(4, _buildOverviewFooter(data)),
       ],
     );
   }
 
-  // ── Hero ──────────────────────────────────────────────────────────
-  Widget _buildHeroHeader(EpidemiologyDashboardData data) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-      decoration: BoxDecoration(
-        gradient: EpidemiologyTheme.primaryGradientWarm,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(color: EpidemiologyTheme.redDeep.withValues(alpha: 0.25), blurRadius: 32, offset: const Offset(0, 10)),
-          BoxShadow(color: EpidemiologyTheme.redDeep.withValues(alpha: 0.10), blurRadius: 14, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.local_hospital, color: Colors.white, size: 26),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Service d'Épidémiologie",
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.75), letterSpacing: 0.3)),
-                    const SizedBox(height: 1),
-                    Text('Plateforme Vaccination',
-                      style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800,
-                        color: Colors.white, letterSpacing: -0.3)),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.calendar_today, size: 13, color: Colors.white.withValues(alpha: 0.85)),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}',
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.85))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              _heroStat('${data.patientsTotal}', 'Patients\ntotaux'),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Container(width: 1, height: 48, color: Colors.white.withValues(alpha: 0.18)),
-              ),
-              _heroStat('${data.vaccinationsAujourdhui}', "Vaccinations\naujourd'hui"),
-              Padding(
-                padding: const EdgeInsets.only(left: 28),
-                child: Container(width: 1, height: 48, color: Colors.white.withValues(alpha: 0.18)),
-              ),
-              const SizedBox(width: 28),
-              _heroStat('${data.modulesActifs}', 'Modules\nactifs'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _heroStat(String value, String label) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(value, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800,
-          color: Colors.white, height: 1.0, letterSpacing: -0.5)),
-        const SizedBox(height: 4),
-        Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500,
-          color: Colors.white.withValues(alpha: 0.75), height: 1.25)),
-      ],
-    );
-  }
-
-  // ── KPI row ───────────────────────────────────────────────────────
-  Widget _buildKpiRow(EpidemiologyDashboardData data) {
+  // ── Indicateurs clés ───────────────────────────────────────────────
+  Widget _buildKpiSection(EpidemiologyDashboardData data) {
     final items = [
-      _kpiItem(Icons.people, '${data.patientsTotal}', 'Patients', EpidemiologyTheme.teal),
-      _kpiItem(Icons.vaccines, '${data.vaccinationsAujourdhui}', 'Aujourd\'hui', EpidemiologyTheme.redMedium),
-      _kpiItem(Icons.warning_amber, '${data.alertesTotal}', 'Alertes', EpidemiologyTheme.warning),
-      _kpiItem(Icons.dashboard, '${data.modulesActifs}', 'Modules', EpidemiologyTheme.indigo),
+      DashboardKpiCard(
+        icon: Icons.people_outline,
+        value: '${data.patientsTotal}',
+        label: 'Patients en suivi',
+        hint: "L'ensemble des dossiers",
+        accent: EpidemiologyTheme.info,
+      ),
+      DashboardKpiCard(
+        icon: Icons.vaccines_outlined,
+        value: '${data.vaccinationsAujourdhui}',
+        label: 'Vaccinations ajd',
+        hint: 'Tous modules',
+        accent: EpidemiologyTheme.redMedium,
+      ),
+      DashboardKpiCard(
+        icon: Icons.folder_copy_outlined,
+        value: '${data.dossiersActifs}',
+        label: 'Dossiers actifs',
+        hint: 'Protocoles en cours',
+        accent: EpidemiologyTheme.indigo,
+      ),
+      DashboardKpiCard(
+        icon: Icons.schedule,
+        value: '${data.patientsEnRetard}',
+        label: 'Patients en retard',
+        hint: 'À relancer',
+        accent: EpidemiologyTheme.orange,
+        onTap: () => _scrollTo(_alertsKey),
+      ),
+      DashboardKpiCard(
+        icon: Icons.warning_amber_outlined,
+        value: '${data.alertesTotal}',
+        label: 'Alertes actives',
+        hint: 'Nécessitent une attention',
+        accent: EpidemiologyTheme.danger,
+        onTap: () => _scrollTo(_alertsKey),
+      ),
+      DashboardKpiCard(
+        icon: Icons.hub_outlined,
+        value: '${data.modulesActifs}',
+        label: 'Modules opérationnels',
+        hint: 'sur 4 modules',
+        accent: EpidemiologyTheme.success,
+      ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth > 600) {
-          return Row(children: items.map((w) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: w))).toList());
-        }
+        final cols = constraints.maxWidth >= 900
+            ? 3
+            : constraints.maxWidth >= 560
+                ? 2
+                : 1;
+        final cardW = (constraints.maxWidth - (cols - 1) * 12) / cols;
         return Wrap(
-          spacing: 8, runSpacing: 8,
-          children: items.map((w) => SizedBox(width: (constraints.maxWidth - 8) / 2, child: w)).toList(),
+          spacing: 12,
+          runSpacing: 12,
+          children: items.map((c) => SizedBox(width: cardW, child: c)).toList(),
         );
       },
     );
   }
 
-  Widget _kpiItem(IconData icon, String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-      decoration: BoxDecoration(
-        color: EpidemiologyTheme.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: EpidemiologyTheme.blackWith(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 18, color: color),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800,
-                color: EpidemiologyTheme.warm900, height: 1.0, letterSpacing: -0.3)),
-              Text(label, style: GoogleFonts.inter(fontSize: 11, color: EpidemiologyTheme.warm400)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Section title ─────────────────────────────────────────────────
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Row(
-        children: [
-          Container(width: 3, height: 18,
-            decoration: BoxDecoration(
-              color: EpidemiologyTheme.redPrimary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(title, style: EpidemiologyTheme.h2(color: EpidemiologyTheme.warm900)),
-        ],
-      ),
-    );
-  }
-
-  // ── Module grid ──────────────────────────────────────────────────
-  Widget _buildModuleGrid(bool isWide, EpidemiologyDashboardData data) {
-    final modules = [
-      ModuleCard(
-        title: 'Vaccination antirabique',
-        sousTitre: 'Schémas Essen, Zagreb, IPC',
-        description: 'Prise en charge post-exposition complète : évaluation initiale J0, protocole vaccinal, suivi clinique, certificats.',
-        icon: Icons.biotech,
+  // ── Bande centrale : accès rapides + alertes ───────────────────────
+  Widget _buildMiddleBand(EpidemiologyDashboardData data) {
+    final quickActions = <QuickAction>[
+      QuickAction(
+        icon: Icons.person_add_alt_1,
+        label: 'Nouveau patient',
+        description: 'Admission antirabique',
         color: EpidemiologyTheme.redMedium,
-        patientsEnSuivi: data.antirabique.patientsEnSuivi,
-        alertes: data.antirabique.alertes,
-        actif: data.antirabique.actif,
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const AntirabiqueDashboardLayout(),
+          builder: (_) => const CreatePatientScreen(),
         )),
       ),
-      ModuleCard(
+      QuickAction(
+        icon: Icons.qr_code_scanner,
+        label: 'Scanner un lot',
+        description: 'Traçabilité vaccin',
+        color: EpidemiologyTheme.indigo,
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const ScannerLotScreen(),
+        )),
+      ),
+      QuickAction(
+        icon: Icons.grid_view_rounded,
+        label: 'Modules',
+        description: 'Voir les modules de vaccination',
+        color: EpidemiologyTheme.teal,
+        onTap: () => _scrollTo(_modulesKey),
+      ),
+      QuickAction(
+        icon: Icons.notifications_none_rounded,
+        label: 'Vigilance',
+        description: 'Retards et alertes',
+        color: EpidemiologyTheme.orange,
+        onTap: () => _scrollTo(_alertsKey),
+      ),
+    ];
+
+    final alerts = <RecentAlertItem>[
+      RecentAlertItem(
+        icon: Icons.schedule,
+        title: '${data.patientsEnRetard} patient(s) en retard de protocole',
+        subtitle: '${_retardCount(data)} répartis sur les modules actifs',
+        color: EpidemiologyTheme.danger,
+        time: 'Retard',
+        onTap: () => _scrollTo(_modulesKey),
+      ),
+      RecentAlertItem(
+        icon: Icons.notifications_active_outlined,
+        title: '${data.alertesTotal} alertes actives',
+        subtitle: 'Nécessitent une attention',
+        color: EpidemiologyTheme.warning,
+        time: "Aujourd'hui",
+        onTap: () => _scrollTo(_modulesKey),
+      ),
+      RecentAlertItem(
+        icon: Icons.vaccines_outlined,
+        title: '${data.vaccinationsAujourdhui} vaccinations programmées',
+        subtitle: 'Tous modules confondus',
+        color: EpidemiologyTheme.redMedium,
+        time: "Aujourd'hui",
+      ),
+      RecentAlertItem(
+        icon: Icons.people_outline,
+        title: '${data.patientsTotal} patients en suivi',
+        subtitle: 'Répartis sur ${data.modulesActifs} modules actifs',
+        color: EpidemiologyTheme.info,
+        time: 'Général',
+      ),
+    ];
+
+    final alertsPanel = KeyedSubtree(
+      key: _alertsKey,
+      child: RecentAlertsPanel(
+        items: alerts,
+        title: 'Alertes & activité',
+        subtitle: _dateLabel,
+        footerAction: _alertsFooter(),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 780) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: QuickActionPanel(actions: quickActions)),
+              const SizedBox(width: 16),
+              Expanded(flex: 3, child: alertsPanel),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            QuickActionPanel(actions: quickActions),
+            const SizedBox(height: 16),
+            alertsPanel,
+          ],
+        );
+      },
+    );
+  }
+
+  int _retardCount(EpidemiologyDashboardData data) {
+    return data.antirabique.patientsEnRetard +
+        data.tetanos.patientsEnRetard +
+        data.hepatiteB.patientsEnRetard +
+        data.voyageur.patientsEnRetard;
+  }
+
+  Widget _alertsFooter() {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const AntirabiqueDashboardLayout(),
+        )),
+        style: FilledButton.styleFrom(
+          backgroundColor: EpidemiologyTheme.redPrimary,
+          foregroundColor: Colors.white,
+        ),
+        icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+        label: const Text('Accéder au module antirabique'),
+      ),
+    );
+  }
+
+  // ── Modules de vaccination ────────────────────────────────────────
+  Widget _buildModulesSection(EpidemiologyDashboardData data) {
+    final modules = <Widget>[
+      KeyedSubtree(
+        key: _modulesKey,
+        child: ModuleOverviewCard(
+          title: 'Vaccination antirabique',
+          sousTitre: 'Schémas Essen, Zagreb, IPC',
+          description:
+              'Prise en charge post-exposition complète : évaluation initiale J0, protocole vaccinal, suivi clinique, certificats.',
+          icon: Icons.biotech,
+          color: EpidemiologyTheme.redMedium,
+          patientsEnSuivi: data.antirabique.patientsEnSuivi,
+          patientsEnRetard: data.antirabique.patientsEnRetard,
+          alertes: data.antirabique.alertes,
+          actif: data.antirabique.actif,
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const AntirabiqueDashboardLayout(),
+          )),
+        ),
+      ),
+      ModuleOverviewCard(
         title: 'Tétanos post-exposition',
         sousTitre: 'Prophylaxie antitétanique',
-        description: 'Évaluation des plaies tétanigènes, statut vaccinal, rappels VAT/Immunoglobulines, suivi des sérologies.',
+        description:
+            'Évaluation des plaies tétanigènes, statut vaccinal, rappels VAT/Immunoglobulines, suivi des sérologies.',
         icon: Icons.healing,
         color: EpidemiologyTheme.amber,
         patientsEnSuivi: data.tetanos.patientsEnSuivi,
+        patientsEnRetard: data.tetanos.patientsEnRetard,
         alertes: data.tetanos.alertes,
         actif: data.tetanos.actif,
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const TetanusHomeScreen(),
+          builder: (_) => const TetanusDashboardLayout(),
         )),
       ),
-      ModuleCard(
+      ModuleOverviewCard(
         title: 'Hépatite B post-exposition',
         sousTitre: 'Séroprophylaxie VHB',
-        description: 'Conduite à tenir après exposition au VHB : statut vaccinal, sérologies, immunoglobulines, suivi sérologique.',
+        description:
+            'Conduite à tenir après exposition au VHB : statut vaccinal, sérologies, immunoglobulines, suivi sérologique.',
         icon: Icons.bloodtype,
         color: EpidemiologyTheme.info,
         patientsEnSuivi: data.hepatiteB.patientsEnSuivi,
+        patientsEnRetard: data.hepatiteB.patientsEnRetard,
         alertes: data.hepatiteB.alertes,
         actif: data.hepatiteB.actif,
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => const HepatitisBHomeScreen(),
         )),
       ),
-      ModuleCard(
+      ModuleOverviewCard(
         title: 'Vaccination du voyageur',
         sousTitre: 'Conseils et prophylaxie',
-        description: 'Consultation pré-voyage, vaccins recommandés par destination, rappels, carnet international.',
+        description:
+            'Consultation pré-voyage, vaccins recommandés par destination, rappels, carnet international.',
         icon: Icons.flight,
         color: EpidemiologyTheme.teal,
         patientsEnSuivi: data.voyageur.patientsEnSuivi,
+        patientsEnRetard: data.voyageur.patientsEnRetard,
         alertes: data.voyageur.alertes,
         actif: data.voyageur.actif,
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => const TravelVaccinationHomeScreen(),
         )),
       ),
-      ModuleCard(
+      ModuleOverviewCard(
         title: 'Campagnes & riposte',
         sousTitre: 'Épidémies et programmes',
-        description: 'Gestion de campagnes vaccinales, riposte épidémique, vaccination de masse, suivi de couverture.',
+        description:
+            'Gestion de campagnes vaccinales, riposte épidémique, vaccination de masse, suivi de couverture.',
         icon: Icons.flag,
         color: EpidemiologyTheme.warm400,
         patientsEnSuivi: 0,
+        patientsEnRetard: 0,
         alertes: 0,
         actif: false,
         enPreparation: true,
       ),
     ];
 
-    if (isWide) {
-      return Column(
-        children: [
-          Row(
-            children: [
-              Expanded(child: modules[0]),
-              const SizedBox(width: 12),
-              Expanded(child: modules[1]),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: modules[2]),
-              const SizedBox(width: 12),
-              Expanded(child: modules[3]),
-            ],
-          ),
-          const SizedBox(height: 12),
-          modules[4],
-        ],
-      );
-    }
-
-    return Column(children: modules.map((m) => Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: m,
-    )).toList());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const DashboardSectionTitle(
+          title: 'Modules de vaccination',
+          subtitle: "Accédez à l'ensemble des parcours",
+          icon: Icons.medical_services_outlined,
+          accent: EpidemiologyTheme.redPrimary,
+        ),
+        DashboardModuleGrid(modules: modules),
+      ],
+    );
   }
 
-  // ── Activité récente ──────────────────────────────────────────────
-  Widget _buildActivitySection(EpidemiologyDashboardData data) {
+  // ── Vue d'ensemble finale ─────────────────────────────────────────
+  Widget _buildOverviewFooter(EpidemiologyDashboardData data) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: EpidemiologyTheme.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: EpidemiologyTheme.shadowSm,
+        gradient: EpidemiologyTheme.softGradient,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: EpidemiologyTheme.warm100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.timeline, size: 18, color: EpidemiologyTheme.warm500),
-              const SizedBox(width: 8),
-              Text('Aperçu du jour', style: EpidemiologyTheme.subtitle(color: EpidemiologyTheme.warm800)),
+              Icon(
+                Icons.insights_rounded,
+                size: 20,
+                color: EpidemiologyTheme.redMedium,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Synthèse opérationnelle',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: EpidemiologyTheme.warm900,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          _activityRow(Icons.vaccines, '${data.vaccinationsAujourdhui} vaccinations programmées',
-            'Tous modules confondus', EpidemiologyTheme.redMedium),
-          const Divider(height: 20, thickness: 1, color: EpidemiologyTheme.warm100),
-          _activityRow(Icons.warning_amber, '${data.alertesTotal} alertes actives',
-            'Nécessitent une attention', EpidemiologyTheme.warning),
-          const Divider(height: 20, thickness: 1, color: EpidemiologyTheme.warm100),
-          _activityRow(Icons.people, '${data.patientsTotal} patients en suivi',
-            'Répartis sur ${data.modulesActifs} modules', EpidemiologyTheme.teal),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: 0.78,
+              minHeight: 8,
+              color: EpidemiologyTheme.success,
+              backgroundColor: EpidemiologyTheme.warm100,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Taux de suivi global : 78% — ${data.patientsEnRetard} dossier(s) à rattraper.',
+            style: GoogleFonts.inter(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: EpidemiologyTheme.warm500,
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _activityRow(IconData icon, String title, String subtitle, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: EpidemiologyTheme.warm800)),
-              Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: EpidemiologyTheme.warm400)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

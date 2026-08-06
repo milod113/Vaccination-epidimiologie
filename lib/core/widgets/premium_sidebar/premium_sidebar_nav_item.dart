@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
-import 'sidebar_models.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_models.dart';
 
 /// Item de navigation premium : pill actif, icône mise en avant, badge,
-/// survol élégant et micro-interactions.
-class SidebarNavItem extends StatefulWidget {
-  final SidebarNavItemModel item;
+/// survol élégant et micro-interactions. Générique sur la destination [T].
+class SidebarNavItem<T> extends StatefulWidget {
+  final SidebarNavItemModel<T> item;
   final bool selected;
   final bool collapsed;
   final VoidCallback? onTap;
@@ -20,10 +20,10 @@ class SidebarNavItem extends StatefulWidget {
   });
 
   @override
-  State<SidebarNavItem> createState() => _SidebarNavItemState();
+  State<SidebarNavItem<T>> createState() => _SidebarNavItemState<T>();
 }
 
-class _SidebarNavItemState extends State<SidebarNavItem> {
+class _SidebarNavItemState<T> extends State<SidebarNavItem<T>> {
   bool _hovered = false;
 
   @override
@@ -39,85 +39,85 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        height: 46,
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        decoration: BoxDecoration(
-          color: isActive
-              ? EpidemiologyTheme.redLight
-              : _hovered
-                  ? EpidemiologyTheme.warm100
-                  : Colors.transparent,
-          borderRadius: BorderRadius.circular(13),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.12),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          height: 46,
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          decoration: BoxDecoration(
+            color: isActive
+                ? EpidemiologyTheme.redLight
+                : _hovered
+                    ? EpidemiologyTheme.warm100
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(13),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Stack(
+            children: [
+              // Barre d'accent gauche sur l'élément actif.
+              AnimatedOpacity(
+                opacity: isActive ? 1 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  margin: const EdgeInsets.symmetric(vertical: 9),
+                  width: 3.5,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [EpidemiologyTheme.redDeep, EpidemiologyTheme.red400],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(3),
                   ),
-                ]
-              : null,
-        ),
-        child: Stack(
-          children: [
-            // Barre d'accent gauche sur l'élément actif.
-            AnimatedOpacity(
-              opacity: isActive ? 1 : 0,
-              duration: const Duration(milliseconds: 180),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                margin: const EdgeInsets.symmetric(vertical: 9),
-                width: 3.5,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [EpidemiologyTheme.redDeep, EpidemiologyTheme.red400],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
-            ),
-            Row(
-              children: [
-                SizedBox(
-                  width: isCollapsed ? 46 : 40,
-                  child: Center(
-                    child: _IconSquare(
-                      icon: widget.item.icon,
-                      active: isActive,
-                      hovered: _hovered,
-                    ),
-                  ),
-                ),
-                if (!isCollapsed) ...[
-                  Expanded(
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 160),
-                      style: GoogleFonts.cairo(
-                        fontSize: 13.5,
-                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                        color: isActive ? EpidemiologyTheme.redDeep : EpidemiologyTheme.warm500,
-                        letterSpacing: -0.1,
-                      ),
-                      child: Text(
-                        widget.item.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  SizedBox(
+                    width: isCollapsed ? 46 : 40,
+                    child: Center(
+                      child: _IconSquare(
+                        icon: widget.item.icon,
+                        active: isActive,
+                        hovered: _hovered,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _SidebarBadge(item: widget.item),
-                  const SizedBox(width: 12),
+                  if (!isCollapsed) ...[
+                    Expanded(
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 160),
+                        style: GoogleFonts.cairo(
+                          fontSize: 13.5,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: isActive ? EpidemiologyTheme.redDeep : EpidemiologyTheme.warm500,
+                          letterSpacing: -0.1,
+                        ),
+                        child: Text(
+                          widget.item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _SidebarBadge(item: widget.item),
+                    const SizedBox(width: 12),
+                  ],
                 ],
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -144,9 +144,7 @@ class _IconSquare extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: active
-            ? Colors.white.withValues(alpha: 0.7)
-            : Colors.transparent,
+        color: active ? Colors.white.withValues(alpha: 0.7) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: active ? Colors.white.withValues(alpha: 0.6) : Colors.transparent,
@@ -159,8 +157,8 @@ class _IconSquare extends StatelessWidget {
 }
 
 /// Badge de compteur / alerte positionné sur la droite de l'item.
-class _SidebarBadge extends StatelessWidget {
-  final SidebarNavItemModel item;
+class _SidebarBadge<T> extends StatelessWidget {
+  final SidebarNavItemModel<T> item;
 
   const _SidebarBadge({required this.item});
 

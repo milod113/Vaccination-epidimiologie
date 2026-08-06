@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
+import '../../../../core/widgets/premium_sidebar/premium_sidebar.dart';
+import '../../../../core/widgets/premium_sidebar/premium_sidebar_models.dart';
 import '../../../../injection_container.dart' as di;
+import '../navigation/antirabique_destination.dart';
 import '../../data/models/dashboard_antirabique_models.dart';
 import '../../data/models/patient_antirabique_model.dart';
 import '../../domain/repositories/dashboard_antirabique_repository.dart';
@@ -24,8 +27,6 @@ import '../screens/tabs/protocole_vaccinal_tab.dart';
 import '../screens/tabs/scanner_lot_screen.dart';
 import '../screens/tabs/stock_dashboard.dart';
 import '../screens/tabs/suivi_clinique_tab.dart';
-import '../widgets/sidebar/antirabique_sidebar.dart';
-import '../widgets/sidebar/sidebar_models.dart';
 
 class AntirabiqueDashboardLayout extends StatefulWidget {
   const AntirabiqueDashboardLayout({super.key});
@@ -151,7 +152,7 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
   }
 
   // ── Sections & données de la sidebar ────────────────────────────────
-  List<SidebarSection> _buildSections() {
+  List<SidebarSection<AntirabiqueDestination>> _buildSections() {
     return [
       const SidebarSection('Navigation', [
         SidebarNavItemModel(
@@ -319,12 +320,19 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AntirabiqueSidebar(
+              PremiumSidebar<AntirabiqueDestination>(
+                identity: const SidebarIdentity(
+                  title: 'Vaccination\nAntirabique',
+                  subtitle: "Service d'épidémiologie",
+                  centerLabel: 'Centre Antirabique',
+                  icon: Icons.biotech,
+                ),
                 sections: _buildSections(),
                 current: _currentDest,
                 onNavigate: _handleNavigate,
                 quickActions: _buildQuickActions(),
                 stats: _buildStats(),
+                statsTitle: 'RÉSUMÉ DU CENTRE',
                 collapsed: _collapsed,
                 onToggleCollapsed: () => setState(() => _collapsed = !_collapsed),
               ),

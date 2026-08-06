@@ -9,11 +9,17 @@ class MockEpidemiologyDashboardRepository implements EpidemiologyDashboardReposi
       patientsTotal: 27,
       vaccinationsAujourdhui: 8,
       alertesTotal: 5,
+      patientsEnRetard: 4,
+      dossiersActifs: 12,
       modulesActifs: 3,
-      antirabique: ModuleStatus(patientsEnSuivi: 11, alertes: 3, actif: true),
-      tetanos: ModuleStatus(patientsEnSuivi: 5, alertes: 1, actif: true),
-      hepatiteB: ModuleStatus(patientsEnSuivi: 4, alertes: 0, actif: false),
-      voyageur: ModuleStatus(patientsEnSuivi: 7, alertes: 1, actif: false),
+      antirabique: ModuleStatus(
+          patientsEnSuivi: 11, patientsEnRetard: 3, alertes: 3, actif: true),
+      tetanos: ModuleStatus(
+          patientsEnSuivi: 5, patientsEnRetard: 1, alertes: 1, actif: true),
+      hepatiteB: ModuleStatus(
+          patientsEnSuivi: 4, patientsEnRetard: 0, alertes: 0, actif: false),
+      voyageur: ModuleStatus(
+          patientsEnSuivi: 7, patientsEnRetard: 0, alertes: 1, actif: false),
     );
   }
 }

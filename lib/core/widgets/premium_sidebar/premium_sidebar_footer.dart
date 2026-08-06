@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/theme/epidemiology_theme.dart';
+import '../../theme/epidemiology_theme.dart';
+import 'premium_sidebar_models.dart';
 
 /// Zone de contexte utilisateur / service en bas de la sidebar.
 class SidebarFooter extends StatelessWidget {
+  final SidebarIdentity identity;
   final bool collapsed;
 
-  const SidebarFooter({super.key, this.collapsed = false});
+  const SidebarFooter({
+    super.key,
+    required this.identity,
+    this.collapsed = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +25,17 @@ class SidebarFooter extends StatelessWidget {
         border: Border.all(color: EpidemiologyTheme.warm150, width: 1),
       ),
       child: collapsed
-          ? _buildAvatar()
+          ? _buildAvatar(identity.icon)
           : Row(
               children: [
-                _buildAvatar(),
+                _buildAvatar(identity.icon),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Centre Antirabique',
+                        identity.centerLabel,
                         style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -39,7 +45,7 @@ class SidebarFooter extends StatelessWidget {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        'Service d’Épidémiologie',
+                        identity.subtitle,
                         style: GoogleFonts.cairo(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w500,
@@ -63,7 +69,7 @@ class SidebarFooter extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(IconData icon) {
     return Container(
       width: collapsed ? 36 : 38,
       height: collapsed ? 36 : 38,
@@ -78,9 +84,7 @@ class SidebarFooter extends StatelessWidget {
           ),
         ],
       ),
-      child: const Center(
-        child: Icon(Icons.local_hospital, color: Colors.white, size: 19),
-      ),
+      child: Center(child: Icon(icon, color: Colors.white, size: 19)),
     );
   }
 }

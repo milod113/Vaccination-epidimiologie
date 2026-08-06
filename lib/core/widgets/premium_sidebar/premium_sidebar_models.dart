@@ -1,29 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Destinations de navigation du module « Vaccination antirabique ».
-enum AntirabiqueDestination {
-  dashboard,
-  patients,
-  dossiers,
-  evaluation,
-  carnet,
-  protocoles,
-  suivi,
-  tracabilite,
-  stocks,
-  scanner,
-  certificats,
-  parametres,
-}
-
 /// Ton visuel d'un badge de compteur / alerte sur un item de navigation.
 enum SidebarBadgeTone { neutral, info, warning, danger, success }
 
-/// Modèle d'un item de navigation de la sidebar.
-class SidebarNavItemModel {
+/// Modèle d'un item de navigation de la sidebar, générique sur le type de
+/// destination afin que chaque module (antirabique, tétanos, …) partage le
+/// même composant de navigation.
+class SidebarNavItemModel<T> {
   final String label;
   final IconData icon;
-  final AntirabiqueDestination destination;
+  final T destination;
   final int? badge;
   final SidebarBadgeTone badgeTone;
   final bool showDot;
@@ -41,9 +27,9 @@ class SidebarNavItemModel {
 }
 
 /// Section de navigation (regroupe des items sous un titre).
-class SidebarSection {
+class SidebarSection<T> {
   final String title;
-  final List<SidebarNavItemModel> items;
+  final List<SidebarNavItemModel<T>> items;
 
   const SidebarSection(this.title, this.items);
 }
@@ -75,5 +61,29 @@ class SidebarStatsEntry {
     required this.label,
     required this.icon,
     required this.color,
+  });
+}
+
+/// Identité visuelle du module affichée dans la sidebar (en-tête de marque
+/// et pied de page). Permet à chaque module de garder son contexte métier
+/// avec un rendu plateforme cohérent.
+class SidebarIdentity {
+  /// Titre affiché dans l'en-tête (une éventuelle ligne sautée est gérée).
+  final String title;
+
+  /// Sous-titre institutionnel (ex. « Service d'épidémiologie »).
+  final String subtitle;
+
+  /// Libellé du centre / service affiché en pied de page.
+  final String centerLabel;
+
+  /// Pictogramme du module.
+  final IconData icon;
+
+  const SidebarIdentity({
+    required this.title,
+    required this.subtitle,
+    required this.centerLabel,
+    required this.icon,
   });
 }
