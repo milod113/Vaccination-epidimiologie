@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/epidemiology_theme.dart';
 import '../../data/models/patient_antirabique_model.dart';
 import '../../domain/repositories/patient_antirabique_repository.dart';
 import '../../../../injection_container.dart' as di;
-import '../widgets/premium_patient_card_antirabique.dart';
+import '../widgets/patient_list/patient_filter_bar.dart';
+import '../widgets/patient_list/patient_list_empty_state.dart';
+import '../widgets/patient_list/patient_list_hero_header.dart';
+import '../widgets/patient_list/patient_list_models.dart';
+import '../widgets/patient_list/patient_list_skeleton.dart';
+import '../widgets/patient_list/patient_overview_kpis.dart';
+import '../widgets/patient_list/patient_search_bar.dart';
+import '../widgets/patient_list/premium_rabies_patient_card.dart';
 
+/// Écran liste des patients antirabiques — page de pilotage clinique.
+///
+/// Structure : hero header premium (titre, contexte, total, CTA admission),
+/// barre de recherche, filtres cliniques + tri, KPI de synthèse, puis grille
+/// responsive de cartes patient premium (avec états skeleton / vide).
 class PatientListAntirabique extends StatefulWidget {
   final void Function(String patientId)? onPatientSelected;
 
@@ -28,16 +38,21 @@ class PatientListAntirabique extends StatefulWidget {
 
 class _PatientListAntirabiqueState extends State<PatientListAntirabique> {
   List<PatientAntirabiqueModel>? _patients;
-  List<PatientAntirabiqueModel>? _filteredPatients;
+  List<PatientAntirabiqueModel>? _filtered;
   bool _loading = true;
+
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+
+  PatientStatusFilter _status = PatientStatusFilter.all;
+  PatientQuickFilter? _quick;
+  PatientSortOption _sort = PatientSortOption.urgent;
 
   @override
   void initState() {
     super.initState();
     _loadPatients();
-    _searchController.addListener(_filter);
+    _searchController.addListener(_applyFilters);
   }
 
   @override
@@ -55,212 +70,168 @@ class _PatientListAntirabiqueState extends State<PatientListAntirabique> {
     super.dispose();
   }
 
+  DateTime get _today {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  int get _totalPatients => _patients?.length ?? 0;
+
+  bool get _hasActiveFilters =>
+      _status != PatientStatusFilter.all ||
+      _quick != null ||
+      _searchController.text.trim().isNotEmpty;
+
   Future<void> _loadPatients() async {
+    setState(() => _loading = true);
     final repo = di.sl<PatientAntirabiqueRepository>();
     final patients = await repo.getPatients();
     setState(() {
       _patients = patients;
-      _filteredPatients = patients;
       _loading = false;
     });
+    _applyFilters();
   }
 
-  void _filter() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _filteredPatients = _patients;
-      } else {
-        _filteredPatients = _patients?.where((p) =>
-          p.nomComplet.toLowerCase().contains(query) ||
-          p.id.toLowerCase().contains(query) ||
-          p.animalSource?.toLowerCase().contains(query) == true
-        ).toList();
+  void _applyFilters() {
+    final source = _patients;
+    if (source == null) {
+      if (_filtered != null) setState(() => _filtered = null);
+      return;
+    }
+    final today = _today;
+    final q = _searchController.text.trim().toLowerCase();
+
+    final matches = source.where((p) {
+      if (q.isNotEmpty) {
+        final hit =
+            p.nomComplet.toLowerCase().contains(q) ||
+            p.id.toLowerCase().contains(q) ||
+            (p.animalSource?.toLowerCase().contains(q) ?? false) ||
+            (p.protocole?.label.toLowerCase().contains(q) ?? false);
+        if (!hit) return false;
       }
-    });
+      if (!_status.matches(p, today)) return false;
+      if (_quick != null && !_quick!.matches(p, today)) return false;
+      return true;
+    }).toList();
+
+    final sorted = _sort.sort(matches, today);
+    setState(() => _filtered = sorted);
   }
 
-  int get _totalCount => _patients?.length ?? 0;
+  void _setStatus(PatientStatusFilter f) {
+    _status = f;
+    _applyFilters();
+  }
+
+  void _setQuick(PatientQuickFilter? f) {
+    _quick = f;
+    _applyFilters();
+  }
+
+  void _setSort(PatientSortOption o) {
+    _sort = o;
+    _applyFilters();
+  }
+
+  void _reset() {
+    _searchController.clear();
+    _status = PatientStatusFilter.all;
+    _quick = null;
+    _focusNode.unfocus();
+    _applyFilters();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildHeader(),
-        const SizedBox(height: 4),
-        _buildSearchBar(),
-        const SizedBox(height: 16),
-        if (_loading)
-          Expanded(child: _buildLoadingState())
-        else if (_filteredPatients != null && _filteredPatients!.isEmpty)
-          Expanded(child: EpidemiologyTheme.emptyState(
-            Icons.search_off,
-            'Aucun patient trouvé',
-            subtitle: 'Essayez de modifier votre recherche',
-          ))
-        else
-          Expanded(child: _buildPatientList()),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: PatientListHeroHeader(
+            totalCount: _totalPatients,
+            onCreatePatient: widget.onCreatePatient,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: PatientSearchBar(
+            controller: _searchController,
+            focusNode: _focusNode,
+            hasQuery: _searchController.text.isNotEmpty,
+            onChanged: (_) => _applyFilters(),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: PatientFilterBar(
+            status: _status,
+            quick: _quick,
+            sort: _sort,
+            resultCount: _filtered?.length ?? 0,
+            onStatusChanged: _setStatus,
+            onQuickChanged: _setQuick,
+            onSortChanged: _setSort,
+            onReset: _hasActiveFilters ? _reset : () {},
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: PatientOverviewKpis(patients: _patients ?? const []),
+        ),
+        _loading
+            ? SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  child: PatientListSkeleton(),
+                ),
+              )
+            : _listSliver(),
       ],
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-      child: Row(
-        children: [
-          Text('Patients', style: EpidemiologyTheme.h2()),
-          const SizedBox(width: 8),
-          if (!_loading)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: EpidemiologyTheme.warm100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text('$_totalCount', style: EpidemiologyTheme.label(color: EpidemiologyTheme.warm600)),
-            ),
-          const Spacer(),
-          if (widget.onCreatePatient != null) ...[
-            FilledButton.icon(
-              onPressed: widget.onCreatePatient,
-              icon: const Icon(Icons.person_add_alt, size: 18),
-              label: const Text('Nouveau'),
-              style: FilledButton.styleFrom(
-                backgroundColor: EpidemiologyTheme.redPrimary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          if (_searchController.text.isNotEmpty)
-            GestureDetector(
-              onTap: () { _searchController.clear(); _focusNode.unfocus(); },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: EpidemiologyTheme.warm100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text('Effacer', style: EpidemiologyTheme.caption(color: EpidemiologyTheme.warm500)),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+  Widget _listSliver() {
+    final list = _filtered;
+    if (list == null || list.isEmpty) {
+      return SliverToBoxAdapter(
+        child: PatientListEmptyState(
+          hasActiveFilters: _hasActiveFilters,
+          onReset: _hasActiveFilters ? _reset : null,
+          onCreate: _hasActiveFilters ? null : widget.onCreatePatient,
         ),
-        child: TextField(
-          controller: _searchController,
-          focusNode: _focusNode,
-          decoration: InputDecoration(
-            hintText: 'Rechercher un patient ou un animal…',
-            prefixIcon: Icon(Icons.search, color: EpidemiologyTheme.warm400, size: 22),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: Icon(Icons.clear, color: EpidemiologyTheme.warm400, size: 18),
-                    onPressed: () { _searchController.clear(); _focusNode.unfocus(); },
-                  )
-                : null,
-          ),
-        ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildLoadingState() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: 6,
-      itemBuilder: (context, i) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Container(
-          height: 118,
-          decoration: BoxDecoration(
-            color: EpidemiologyTheme.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: EpidemiologyTheme.shadowSm,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: EpidemiologyTheme.warm100,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(22), bottomLeft: Radius.circular(22),
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cols = constraints.maxWidth >= 1100
+                ? 3
+                : constraints.maxWidth >= 620
+                    ? 2
+                    : 1;
+            final gap = 14.0;
+            final cardWidth =
+                (constraints.maxWidth - gap * (cols - 1)) / cols;
+
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final patient in list)
+                  SizedBox(
+                    width: cardWidth,
+                    child: PremiumRabiesPatientCard(
+                      patient: patient,
+                      onTap: () => widget.onPatientSelected?.call(patient.id),
+                    ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          EpidemiologyTheme.shimmerBox(width: 44, height: 44, radius: 14),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                EpidemiologyTheme.shimmerBox(width: 140, height: 16),
-                                const SizedBox(height: 6),
-                                EpidemiologyTheme.shimmerBox(width: 100, height: 12),
-                              ],
-                            ),
-                          ),
-                          EpidemiologyTheme.shimmerBox(width: 80, height: 24, radius: 20),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Divider(height: 1, thickness: 1, color: EpidemiologyTheme.warm100),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          EpidemiologyTheme.shimmerBox(width: 60, height: 20, radius: 8),
-                          const SizedBox(width: 8),
-                          EpidemiologyTheme.shimmerBox(width: 80, height: 20, radius: 8),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
-    );
-  }
-
-  Widget _buildPatientList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _filteredPatients!.length,
-      itemBuilder: (context, index) {
-        final patient = _filteredPatients![index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: PremiumPatientCardAntirabique(
-            patient: patient,
-            onTap: () => widget.onPatientSelected?.call(patient.id),
-          ),
-        );
-      },
     );
   }
 }

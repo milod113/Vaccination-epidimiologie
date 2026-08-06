@@ -126,28 +126,24 @@ class PatientDossierHeroHeader extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 720;
-              final statusRow = Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              final statusChips = <Widget>[
+                _StatusChip(
+                  label: decision.statut.label,
+                  icon: Icons.verified_outlined,
+                  color: _statusColor,
+                ),
+                if (decision.protocole != null)
                   _StatusChip(
-                    label: decision.statut.label,
-                    icon: Icons.verified_outlined,
-                    color: _statusColor,
+                    label: decision.protocole!.type.label,
+                    icon: Icons.timeline,
+                    color: const Color(0xFF93C5FD),
                   ),
-                  if (decision.protocole != null)
-                    _StatusChip(
-                      label: decision.protocole!.type.label,
-                      icon: Icons.timeline,
-                      color: const Color(0xFF93C5FD),
-                    ),
-                  _StatusChip(
-                    label: followUp.animalConclusion.label,
-                    icon: Icons.pets,
-                    color: _animalColor,
-                  ),
-                ],
-              );
+                _StatusChip(
+                  label: followUp.animalConclusion.label,
+                  icon: Icons.pets,
+                  color: _animalColor,
+                ),
+              ];
               final stats = _HeroStats(d: d, next: next);
               if (wide) {
                 return Row(
@@ -155,42 +151,55 @@ class PatientDossierHeroHeader extends StatelessWidget {
                   children: [
                     Expanded(child: stats),
                     const SizedBox(width: 16),
-                    statusRow,
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.end,
+                        children: statusChips,
+                      ),
+                    ),
                   ],
                 );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [stats, const SizedBox(height: 14), statusRow],
+                children: [
+                  stats,
+                  const SizedBox(height: 14),
+                  Wrap(spacing: 8, runSpacing: 8, children: statusChips),
+                ],
               );
             },
           ),
           const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _NextDoseBanner(
-                  next: next,
-                  delayed: followUp.joursRetard,
-                  overdue: followUp.protocoleStatut == RabiesProtocolStatus.enRetard,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _NextDoseBanner(
+                    next: next,
+                    delayed: followUp.joursRetard,
+                    overdue: followUp.protocoleStatut == RabiesProtocolStatus.enRetard,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              _ActionButton(
-                label: 'Modifier J0',
-                icon: Icons.edit_note,
-                filled: false,
-                onTap: onEditJ0,
-              ),
-              const SizedBox(width: 8),
-              _ActionButton(
-                label: 'Suivi',
-                icon: Icons.timeline,
-                filled: true,
-                onTap: onFollowUp,
-              ),
-            ],
+                const SizedBox(width: 12),
+                _ActionButton(
+                  label: 'Modifier J0',
+                  icon: Icons.edit_note,
+                  filled: false,
+                  onTap: onEditJ0,
+                ),
+                const SizedBox(width: 8),
+                _ActionButton(
+                  label: 'Suivi',
+                  icon: Icons.timeline,
+                  filled: true,
+                  onTap: onFollowUp,
+                ),
+              ],
+            ),
           ),
         ],
       ),
