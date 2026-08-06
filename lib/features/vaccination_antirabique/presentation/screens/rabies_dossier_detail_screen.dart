@@ -4,8 +4,8 @@ import '../../../../core/theme/epidemiology_theme.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/models/dossier/dossier_enums.dart';
 import '../../domain/models/dossier/rabies_case_record.dart';
-import '../../domain/models/dossier/rabies_clinical_alert.dart';
 import '../../domain/models/dossier/rabies_decision_summary.dart';
+import '../../domain/models/dossier/rabies_follow_up_summary.dart';
 import '../../domain/repositories/rabies_dossier_repository.dart';
 import '../../domain/services/rabies_decision_engine.dart';
 import '../../domain/services/rabies_alert_service.dart';
@@ -13,6 +13,13 @@ import '../../domain/services/rabies_follow_up_service.dart';
 import 'rabies_follow_up_screen.dart';
 import 'rabies_j0_form_screen.dart';
 import 'rabies_traceability_screen.dart';
+import '../widgets/dossier/alert_banner_card.dart';
+import '../widgets/dossier/clinical_summary_card.dart';
+import '../widgets/dossier/dose_timeline.dart';
+import '../widgets/dossier/info_grid.dart';
+import '../widgets/dossier/outcome_panel.dart';
+import '../widgets/dossier/patient_dossier_hero.dart';
+import '../widgets/dossier/protocol_progress_card.dart';
 import '../widgets/rabies_dossier_widgets.dart';
 import '../widgets/traceability/traceability_section.dart';
 
@@ -87,307 +94,54 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
         subtitle: 'Il a peut-être été supprimé',
       );
     }
+
+    final decision = RabiesDecisionEngine.resumer(dossier);
+    final followUp = RabiesFollowUpService.summary(dossier);
+    final alerts = RabiesAlertService.evaluer(dossier);
+
     return Container(
       decoration: BoxDecoration(gradient: EpidemiologyTheme.surfaceGradient),
       child: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(dossier),
-            Expanded(child: _buildBody(dossier)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(RabiesCaseRecord d) {
-    final urgent = d.estUrgent;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 12, 14),
-      color: EpidemiologyTheme.white,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              if (widget.onBack != null)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  color: EpidemiologyTheme.slate900,
-                  onPressed: widget.onBack,
-                ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: EpidemiologyTheme.primaryGradientWarm,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.folder_copy_outlined, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      d.patientNomComplet,
-                      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: EpidemiologyTheme.slate900),
-                    ),
-                    Text(
-                      '${d.numeroDossier} · ${d.patientAge} ans · ${d.identity.sexe.label}',
-                      style: GoogleFonts.inter(fontSize: 12.5, color: EpidemiologyTheme.warm500, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-              DossierChip(
-                label: d.categorie.label,
-                icon: Icons.category,
-                color: urgent ? EpidemiologyTheme.danger : EpidemiologyTheme.warning,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    DossierChip(
-                      label: 'Créé : ${ddMMyyyy(d.dateCreation)}',
-                      icon: Icons.event,
-                      color: EpidemiologyTheme.slate400,
-                      subtle: true,
-                    ),
-                    if (d.aErigAdministree)
-                      DossierChip(label: 'ERIG', icon: Icons.science, color: EpidemiologyTheme.teal, subtle: true),
-                    DossierChip(label: d.evolution.resultat.label, icon: Icons.flag, color: EpidemiologyTheme.slate500, subtle: true),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: _openJ0Editor,
-                icon: const Icon(Icons.edit_note, size: 16),
-                label: const Text('Modifier J0'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: EpidemiologyTheme.redPrimary,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          if (d.aRetard) ...[
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [EpidemiologyTheme.dangerLight, EpidemiologyTheme.warningLight],
-                  begin: Alignment.centerLeft, end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.schedule, size: 16, color: EpidemiologyTheme.warning),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Protocole en retard — doses en attente',
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: EpidemiologyTheme.danger),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBody(RabiesCaseRecord d) {
-    final alerts = RabiesAlertService.evaluer(d);
-    final summary = RabiesDecisionEngine.resumer(d);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (alerts.isNotEmpty) _buildAlerts(alerts),
-          Text(_decisionResume(summary),
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: EpidemiologyTheme.slate700)),
-          const SizedBox(height: 14),
-          _buildFollowUpCta(d),
-          const SizedBox(height: 14),
-          _buildIdentitySection(d),
-          _buildAdmissionSection(d),
-          _buildExposureSection(d),
-          _buildAnimalSection(d),
-          _buildCareSection(d),
-          _buildVaccinationSection(d),
-          _buildFollowUpSection(d),
-          const SizedBox(height: 4),
-          TraceabilitySection(record: d, onOpenHistory: _openTraceability),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlerts(List<RabiesClinicalAlert> alerts) {
-    final critical = alerts.where((a) => a.severity == RabiesAlertSeverity.critical).toList();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: critical.isNotEmpty ? EpidemiologyTheme.dangerLight : EpidemiologyTheme.warningLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (critical.isNotEmpty ? EpidemiologyTheme.danger : EpidemiologyTheme.warning).withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.report_problem, size: 18,
-                  color: critical.isNotEmpty ? EpidemiologyTheme.danger : EpidemiologyTheme.warning),
-              const SizedBox(width: 8),
-              Text('Points d\'attention',
-                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700,
-                      color: critical.isNotEmpty ? EpidemiologyTheme.danger : EpidemiologyTheme.warning)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          for (final a in alerts) _alertLine(a),
-        ],
-      ),
-    );
-  }
-
-  Widget _alertLine(RabiesClinicalAlert a) {
-    final color = switch (a.severity) {
-      RabiesAlertSeverity.critical => EpidemiologyTheme.danger,
-      RabiesAlertSeverity.warning => EpidemiologyTheme.warning,
-      RabiesAlertSeverity.info => EpidemiologyTheme.slate600,
-    };
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(a.icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text('${a.titre} ${a.message}',
-                style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600, color: color)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFollowUpCta(RabiesCaseRecord d) {
-    final fu = RabiesFollowUpService.summary(d);
-    final pct = fu.progressionPercent;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: _openFollowUp,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [EpidemiologyTheme.redDeep, EpidemiologyTheme.redPrimary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: EpidemiologyTheme.redDeep.withValues(alpha: 0.30),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.timeline, size: 20, color: Colors.white),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Suivi du dossier',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
+              PatientDossierHeroHeader(
+                dossier: dossier,
+                decision: decision,
+                followUp: followUp,
+                onBack: widget.onBack,
+                onEditJ0: _openJ0Editor,
+                onFollowUp: _openFollowUp,
               ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
+              AlertBannerCard(alerts: alerts, onCta: _openFollowUp),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 1000;
+                  final clinical = _clinicalColumn(dossier, decision, followUp);
+                  final admin = _adminColumn(dossier, decision, followUp);
+                  if (wide) {
+                    return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          fu.protocoleStatut.label,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white.withValues(alpha: 0.95),
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${fu.dosesRealisees}/${fu.totalDoses} doses · '
-                          '${fu.prochaineDose?.jourTheorique ?? '—'} en prochain',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.85),
-                          ),
-                        ),
+                        Expanded(child: clinical),
+                        const SizedBox(width: 16),
+                        Expanded(child: admin),
                       ],
-                    ),
-                  ),
-                  _fuBadge(pct),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: SizedBox(
-                  height: 6,
-                  child: Stack(
+                    );
+                  }
+                  return Column(
                     children: [
-                      Container(color: Colors.white.withValues(alpha: 0.25)),
-                      FractionallySizedBox(
-                        widthFactor: pct / 100,
-                        child: Container(
-                          color: pct >= 100 ? const Color(0xFF4ADE80) : Colors.amberAccent,
-                        ),
-                      ),
+                      clinical,
+                      const SizedBox(height: 16),
+                      admin,
                     ],
-                  ),
-                ),
+                  );
+                },
               ),
+              const SizedBox(height: 16),
+              TraceabilitySection(record: dossier, onOpenHistory: _openTraceability),
             ],
           ),
         ),
@@ -395,61 +149,104 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     );
   }
 
-  Widget _fuBadge(int pct) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '$pct%',
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
-      ),
+  // ── Colonne clinique ──────────────────────────────────────────────
+
+  Widget _clinicalColumn(
+    RabiesCaseRecord d,
+    RabiesDecisionSummary decision,
+    RabiesFollowUpSummary followUp,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClinicalSummaryCard(
+          decision: decision,
+          followUp: followUp,
+          ppeNonIndiquee: decision.ppeNonIndiquee,
+        ),
+        ProtocolProgressCard(
+          followUp: followUp,
+          protocol: d.vaccination.protocole,
+          onOpenFollowUp: _openFollowUp,
+        ),
+        _buildExposureSection(d),
+        _buildAnimalSection(d),
+        _buildCareSection(d),
+      ],
     );
   }
 
-  String _decisionResume(RabiesDecisionSummary s) {
-    final parts = <String>[
-      'Catégorie ${s.categorie.categorie.label}',
-      s.ppe.indiquee ? 'PPE indiquée' : 'Pas de PPE',
-    ];
-    if (s.erig.indiquee) {
-      parts.add(s.erig.administree ? 'ERIG administrée' : 'ERIG à administrer');
-    }
-    final p = s.protocole;
-    if (p != null) parts.add('Protocole ${p.type.label}');
-    if (s.prochaineDose != null) parts.add('Prochaine dose ${s.prochaineDose!.jourTheorique}');
-    return parts.join(' • ');
+  // ── Colonne administrative ────────────────────────────────────────
+
+  Widget _adminColumn(
+    RabiesCaseRecord d,
+    RabiesDecisionSummary decision,
+    RabiesFollowUpSummary followUp,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildIdentitySection(d),
+        _buildAdmissionSection(d),
+        _buildVaccinationSection(d),
+        _buildFollowUpSection(d),
+        OutcomePanel(evolution: d.evolution, followUp: followUp),
+      ],
+    );
   }
+
+  // ── Sections détaillées ───────────────────────────────────────────
 
   Widget _buildIdentitySection(RabiesCaseRecord d) {
     final id = d.identity;
     final r = id.residence;
     return DossierSectionCard(
       title: 'A · Identité patient',
+      subtitle: 'Données civiles et coordonnées',
       icon: Icons.person,
       accent: EpidemiologyTheme.redPrimary,
       child: Column(
         children: [
-          DossierInfoRow(label: 'Nom / Prénom', value: id.nomComplet),
-          DossierInfoRow(label: 'Date de naissance', value: ddMMyyyy(id.dateNaissance)),
-          DossierInfoRow(label: 'Âge', value: id.ageCalcule?.toString()),
-          DossierInfoRow(label: 'Sexe', value: id.sexe.label),
-          DossierInfoRow(label: 'Poids', value: id.poidsKg != null ? '${id.poidsKg} kg' : null),
-          DossierInfoRow(label: 'Téléphone', value: id.telephone),
-          DossierInfoRow(label: 'Profession', value: id.profession),
-          DossierInfoRow(label: 'Niveau d\'instruction', value: id.niveauInstruction.label),
-          DossierInfoRow(label: 'Terrain particulier', value: id.terrainParticulier),
-          if (id.medecinTraitant != null) DossierInfoRow(label: 'Médecin traitant', value: id.medecinTraitant),
-          if (id.infirmier != null) DossierInfoRow(label: 'Infirmier', value: id.infirmier),
-          Divider(color: EpidemiologyTheme.warm100, height: 20),
-          Text('B · Adresse', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm400)),
-          DossierInfoRow(label: 'Adresse', value: r.adresse),
-          DossierInfoRow(label: 'Commune', value: r.commune),
-          DossierInfoRow(label: 'Daira', value: r.daira),
-          DossierInfoRow(label: 'Wilaya', value: r.wilaya),
-          DossierInfoRow(label: 'Résidence', value: r.residence),
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Nom / Prénom', value: id.nomComplet, icon: Icons.badge_outlined),
+              InfoTile(label: 'Date de naissance', value: ddMMyyyy(id.dateNaissance), icon: Icons.cake_outlined),
+              InfoTile(label: 'Âge', value: id.ageCalcule?.toString(), icon: Icons.timeline),
+              InfoTile(label: 'Sexe', value: id.sexe.label, icon: Icons.wc),
+              InfoTile(label: 'Poids', value: id.poidsKg != null ? '${id.poidsKg} kg' : null, icon: Icons.monitor_weight_outlined),
+              InfoTile(label: 'Téléphone', value: id.telephone, icon: Icons.phone_outlined),
+              InfoTile(label: 'Profession', value: id.profession, icon: Icons.work_outline),
+              InfoTile(label: 'Niveau d\'instruction', value: id.niveauInstruction.label, icon: Icons.school_outlined),
+              InfoTile(label: 'Terrain particulier', value: id.terrainParticulier, icon: Icons.medical_services_outlined),
+              InfoTile(label: 'Médecin traitant', value: id.medecinTraitant, icon: Icons.health_and_safety_outlined),
+              InfoTile(label: 'Infirmier', value: id.infirmier, icon: Icons.person_outline),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.home_work_outlined, size: 15, color: EpidemiologyTheme.redPrimary),
+              const SizedBox(width: 6),
+              Text(
+                'B · Adresse',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: EpidemiologyTheme.redPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Adresse', value: r.adresse),
+              InfoTile(label: 'Commune', value: r.commune),
+              InfoTile(label: 'Daira', value: r.daira),
+              InfoTile(label: 'Wilaya', value: r.wilaya),
+              InfoTile(label: 'Résidence', value: r.residence),
+            ],
+          ),
         ],
       ),
     );
@@ -459,14 +256,15 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     final a = d.admission;
     return DossierSectionCard(
       title: 'C · Admission à l\'UAR',
+      subtitle: 'Conditions d\'arrivée du patient',
       icon: Icons.local_hospital,
       accent: EpidemiologyTheme.teal,
-      child: Column(
-        children: [
-          DossierInfoRow(label: 'Date d\'arrivée', value: ddMMyyyy(a.dateArriveeUar)),
-          DossierInfoRow(label: 'Heure d\'arrivée', value: a.heureArrivee),
-          DossierInfoRow(label: 'Mode d\'arrivée', value: a.modeArrivee.label),
-          DossierInfoRow(label: 'Structure d\'orientation', value: a.structureOrientation),
+      child: InfoGrid(
+        items: [
+          InfoTile(label: 'Date d\'arrivée', value: ddMMyyyy(a.dateArriveeUar), icon: Icons.event),
+          InfoTile(label: 'Heure d\'arrivée', value: a.heureArrivee, icon: Icons.schedule),
+          InfoTile(label: 'Mode d\'arrivée', value: a.modeArrivee.label, icon: Icons.directions_walk),
+          InfoTile(label: 'Structure d\'orientation', value: a.structureOrientation, icon: Icons.account_balance_outlined),
         ],
       ),
     );
@@ -477,31 +275,66 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     final c = d.classification;
     return DossierSectionCard(
       title: 'D · Exposition & E · Classification',
+      subtitle: 'Circonstances de l\'exposition au risque',
       icon: Icons.medical_information,
       accent: EpidemiologyTheme.warning,
       child: Column(
         children: [
-          DossierInfoRow(label: 'Date d\'exposition', value: ddMMyyyy(e.dateExposition)),
-          DossierInfoRow(label: 'Heure', value: e.heureExposition),
-          DossierInfoRow(label: 'Lieu', value: e.lieu.label),
-          DossierInfoRow(label: 'Nature', value: e.nature.label),
-          DossierInfoRow(label: 'Saignement', value: e.saignement.label),
-          DossierInfoRow(
-            label: 'Nombre de lésions',
-            value: e.nombreLesionsValeur?.toString() ?? e.nombreLesions.label,
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Date d\'exposition', value: ddMMyyyy(e.dateExposition), icon: Icons.event),
+              InfoTile(label: 'Heure', value: e.heureExposition, icon: Icons.schedule),
+              InfoTile(label: 'Lieu', value: e.lieu.label, icon: Icons.place_outlined),
+              InfoTile(label: 'Nature', value: e.nature.label, icon: Icons.emergency_outlined),
+              InfoTile(label: 'Saignement', value: e.saignement.label, icon: Icons.water_drop_outlined),
+              InfoTile(
+                label: 'Nombre de lésions',
+                value: e.nombreLesionsValeur?.toString() ?? e.nombreLesions.label,
+                icon: Icons.zoom_out_map,
+              ),
+              InfoTile(
+                label: 'Siège des lésions',
+                value: e.siegeLesions.isEmpty ? null : e.siegeLesions.map((s) => s.label).join(', '),
+                icon: Icons.accessibility_new,
+              ),
+            ],
           ),
-          DossierInfoRow(
-            label: 'Siège des lésions',
-            value: e.siegeLesions.isEmpty ? null : e.siegeLesions.map((s) => s.label).join(', '),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.category_outlined, size: 15, color: EpidemiologyTheme.warning),
+              const SizedBox(width: 6),
+              Text(
+                'Classification du risque',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: EpidemiologyTheme.warning,
+                ),
+              ),
+            ],
           ),
-          Divider(color: EpidemiologyTheme.warm100, height: 20),
-          DossierInfoRow(label: 'Catégorie', value: c.categorie.label,
-            valueColor: c.categorie == RabiesRiskCategory.categorieIII ? EpidemiologyTheme.danger : EpidemiologyTheme.warning),
-          DossierInfoRow(label: 'Méthode', value: c.methode.label),
-          DossierInfoRow(label: 'Justification', value: c.justification),
-          if (c.mesuresFamiliales.isNotEmpty)
-            DossierInfoRow(label: 'Mesures familiales', value: c.mesuresFamiliales.map((m) => m.label).join(', ')),
-          if (c.precisionMesures != null) DossierInfoRow(label: 'Précision', value: c.precisionMesures),
+          const SizedBox(height: 6),
+          InfoGrid(
+            items: [
+              InfoTile(
+                label: 'Catégorie',
+                value: c.categorie.label,
+                valueColor: c.categorie == RabiesRiskCategory.categorieIII
+                    ? EpidemiologyTheme.danger
+                    : EpidemiologyTheme.warning,
+                icon: Icons.shield_outlined,
+              ),
+              InfoTile(label: 'Méthode', value: c.methode.label, icon: Icons.calculate_outlined),
+              InfoTile(label: 'Justification', value: c.justification, icon: Icons.notes),
+              InfoTile(
+                label: 'Mesures familiales',
+                value: c.mesuresFamiliales.isEmpty ? null : c.mesuresFamiliales.map((m) => m.label).join(', '),
+                icon: Icons.family_restroom,
+              ),
+              InfoTile(label: 'Précision', value: c.precisionMesures, icon: Icons.notes),
+            ],
+          ),
         ],
       ),
     );
@@ -511,30 +344,57 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     final a = d.animal;
     return DossierSectionCard(
       title: 'F · Animal en cause',
+      subtitle: 'Espèce, statut et suivi vétérinaire',
       icon: Icons.pets,
       accent: EpidemiologyTheme.slate500,
       child: Column(
         children: [
-          DossierInfoRow(label: 'Espèce', value: a.espece.label),
-          if (a.autreEspecePrecision != null) DossierInfoRow(label: 'Précision espèce', value: a.autreEspecePrecision),
-          DossierInfoRow(label: 'Couleur du pelage', value: a.couleurPelage),
-          DossierInfoRow(label: 'Statut', value: a.statut.label),
-          DossierInfoRow(label: 'Propriétaire', value: a.proprietaireNom),
-          DossierInfoRow(label: 'Comportement', value: a.comportement.label),
-          DossierInfoRow(label: 'Vaccination', value: a.vaccination.label),
-          DossierInfoRow(label: 'Date vaccination', value: ddMMyyyy(a.dateVaccination)),
-          Divider(color: EpidemiologyTheme.warm100, height: 20),
-          DossierInfoRow(label: 'Observation vétérinaire', value: a.observationVeterinaire.label),
-          DossierInfoRow(label: 'Début observation', value: ddMMyyyy(a.debutObservation)),
-          DossierInfoRow(label: 'Fin observation', value: ddMMyyyy(a.finObservation)),
-          DossierInfoRow(label: 'Résultat observation', value: a.resultatObservation.label),
-          DossierInfoRow(label: 'Sort', value: a.sort.label),
-          Divider(color: EpidemiologyTheme.warm100, height: 20),
-          DossierInfoRow(label: 'Envoi tête au labo', value: a.envoiTeteLabo.label),
-          DossierInfoRow(label: 'Type d\'analyse', value: a.typeAnalyse?.label),
-          DossierInfoRow(label: 'Date analyse', value: ddMMyyyy(a.dateAnalyse)),
-          DossierInfoRow(label: 'Résultat labo', value: a.resultatLabo.label,
-            valueColor: a.animalEnrageConfirme ? EpidemiologyTheme.danger : null),
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Espèce', value: a.espece.label, icon: Icons.pets),
+              InfoTile(label: 'Précision espèce', value: a.autreEspecePrecision, icon: Icons.edit_note),
+              InfoTile(label: 'Couleur du pelage', value: a.couleurPelage, icon: Icons.palette_outlined),
+              InfoTile(label: 'Statut', value: a.statut.label, icon: Icons.home_work_outlined),
+              InfoTile(label: 'Propriétaire', value: a.proprietaireNom, icon: Icons.person_outline),
+              InfoTile(label: 'Comportement', value: a.comportement.label, icon: Icons.psychology_outlined),
+              InfoTile(label: 'Vaccination', value: a.vaccination.label, icon: Icons.vaccines_outlined),
+              InfoTile(label: 'Date vaccination', value: ddMMyyyy(a.dateVaccination), icon: Icons.event),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.biotech_outlined, size: 15, color: EpidemiologyTheme.warning),
+              const SizedBox(width: 6),
+              Text(
+                'Observation & laboratoire',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: EpidemiologyTheme.warning,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Observation vétérinaire', value: a.observationVeterinaire.label, icon: Icons.visibility_outlined),
+              InfoTile(label: 'Début observation', value: ddMMyyyy(a.debutObservation), icon: Icons.event),
+              InfoTile(label: 'Fin observation', value: ddMMyyyy(a.finObservation), icon: Icons.event_available),
+              InfoTile(label: 'Résultat observation', value: a.resultatObservation.label, icon: Icons.task_alt),
+              InfoTile(label: 'Sort', value: a.sort.label, icon: Icons.location_on_outlined),
+              InfoTile(label: 'Envoi tête au labo', value: a.envoiTeteLabo.label, icon: Icons.science_outlined),
+              InfoTile(label: 'Type d\'analyse', value: a.typeAnalyse?.label, icon: Icons.biotech_outlined),
+              InfoTile(label: 'Date analyse', value: ddMMyyyy(a.dateAnalyse), icon: Icons.event),
+              InfoTile(
+                label: 'Résultat labo',
+                value: a.resultatLabo.label,
+                valueColor: a.animalEnrageConfirme ? EpidemiologyTheme.danger : null,
+                icon: Icons.science,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -548,59 +408,68 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
       children: [
         DossierSectionCard(
           title: 'G · Soins locaux',
+          subtitle: 'Nettoyage et désinfection de la plaie',
           icon: Icons.cleaning_services,
           accent: EpidemiologyTheme.teal,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Soins réalisés', value: s.realise.label),
-              if (s.methodes.isNotEmpty)
-                DossierInfoRow(label: 'Méthodes', value: s.methodes.map((m) => m.label).join(', ')),
-              if (s.produitsAppliques != null) DossierInfoRow(label: 'Produits appliqués', value: s.produitsAppliques),
-              if (s.notes != null) DossierInfoRow(label: 'Notes', value: s.notes),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Soins réalisés', value: s.realise.label, icon: Icons.done_all),
+              InfoTile(
+                label: 'Méthodes',
+                value: s.methodes.isEmpty ? null : s.methodes.map((m) => m.label).join(', '),
+                icon: Icons.water_drop_outlined,
+              ),
+              InfoTile(label: 'Produits appliqués', value: s.produitsAppliques, icon: Icons.medication_outlined),
+              InfoTile(label: 'Notes', value: s.notes, icon: Icons.notes),
             ],
           ),
         ),
         DossierSectionCard(
           title: 'H · ERIG / Immunoglobulines',
+          subtitle: d.classification.erigIndiquee ? 'Indiquée pour cette exposition' : 'Non indiquée',
           icon: Icons.science,
           accent: d.classification.erigIndiquee ? EpidemiologyTheme.teal : EpidemiologyTheme.slate400,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Indiquée', value: er.indiquee ? 'Oui' : 'Non'),
-              DossierInfoRow(label: 'Administrée', value: er.administree ? 'Oui' : 'Non'),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Indiquée', value: er.indiquee ? 'Oui' : 'Non', icon: Icons.help_outline),
+              InfoTile(label: 'Administrée', value: er.administree ? 'Oui' : 'Non', icon: Icons.check_circle_outline),
               if (er.administree) ...[
-                DossierInfoRow(label: 'Date', value: ddMMyyyy(er.date)),
-                DossierInfoRow(label: 'Heure', value: er.heure),
-                DossierInfoRow(label: 'N° de lot', value: er.numeroLot),
-                DossierInfoRow(label: 'Titre (UI/ml)', value: er.titreIUMl?.toString()),
-                DossierInfoRow(label: 'Poids patient', value: er.poidsPatientKg != null ? '${er.poidsPatientKg} kg' : null),
-                DossierInfoRow(label: 'Dose théorique (IU)', value: er.doseTotaleTheoriqueIU?.toString()),
-                DossierInfoRow(label: 'Méthode Besredka', value: er.methodeBesredka ? 'Oui' : 'Non'),
-                DossierInfoRow(label: 'Dilution réalisée', value: er.dilutionRealisee ? 'Oui' : 'Non'),
+                InfoTile(label: 'Date', value: ddMMyyyy(er.date), icon: Icons.event),
+                InfoTile(label: 'Heure', value: er.heure, icon: Icons.schedule),
+                InfoTile(label: 'N° de lot', value: er.numeroLot, icon: Icons.inventory_2_outlined),
+                InfoTile(label: 'Titre (UI/ml)', value: er.titreIUMl?.toString(), icon: Icons.speed_outlined),
+                InfoTile(label: 'Poids patient', value: er.poidsPatientKg != null ? '${er.poidsPatientKg} kg' : null, icon: Icons.monitor_weight_outlined),
+                InfoTile(label: 'Dose théorique (IU)', value: er.doseTotaleTheoriqueIU?.toString(), icon: Icons.functions_outlined),
+                InfoTile(label: 'Méthode Besredka', value: er.methodeBesredka ? 'Oui' : 'Non', icon: Icons.science_outlined),
+                InfoTile(label: 'Dilution réalisée', value: er.dilutionRealisee ? 'Oui' : 'Non', icon: Icons.opacity_outlined),
                 if (er.quantiteSerumPhysiologiqueMl != null)
-                  DossierInfoRow(label: 'Sérum physiologique', value: '${er.quantiteSerumPhysiologiqueMl} ml'),
-                if (er.voies.isNotEmpty)
-                  DossierInfoRow(label: 'Voies', value: er.voies.map((v) => v.label).join(', ')),
-                DossierInfoRow(label: 'Réaction post-ERIG', value: er.reactionPostErig ? 'Oui' : 'Non'),
-                DossierInfoRow(label: 'Type de réaction', value: er.typeReaction?.label),
-                if (er.mesuresReaction != null) DossierInfoRow(label: 'Mesures', value: er.mesuresReaction),
+                  InfoTile(label: 'Sérum physiologique', value: '${er.quantiteSerumPhysiologiqueMl} ml', icon: Icons.water_drop_outlined),
+                InfoTile(
+                  label: 'Voies',
+                  value: er.voies.isEmpty ? null : er.voies.map((v) => v.label).join(', '),
+                  icon: Icons.gps_fixed,
+                ),
+                InfoTile(label: 'Réaction post-ERIG', value: er.reactionPostErig ? 'Oui' : 'Non', icon: Icons.warning_amber_rounded),
+                InfoTile(label: 'Type de réaction', value: er.typeReaction?.label, icon: Icons.emergency_outlined),
+                InfoTile(label: 'Mesures', value: er.mesuresReaction, icon: Icons.medication_outlined),
               ],
             ],
           ),
         ),
         DossierSectionCard(
           title: 'I · Chirurgie / Suture',
+          subtitle: 'Prise en charge chirurgicale des lésions',
           icon: Icons.healing,
           accent: EpidemiologyTheme.warning,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Chirurgie réalisée', value: ch.realise.label),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Chirurgie réalisée', value: ch.realise.label, icon: Icons.healing_outlined),
               if (ch.realise == SurgeryPerformed.oui) ...[
-                DossierInfoRow(label: 'Date', value: ddMMyyyy(ch.date)),
-                DossierInfoRow(label: 'Hôpital', value: ch.hopital),
-                DossierInfoRow(label: 'Service', value: ch.service),
+                InfoTile(label: 'Date', value: ddMMyyyy(ch.date), icon: Icons.event),
+                InfoTile(label: 'Hôpital', value: ch.hopital, icon: Icons.local_hospital_outlined),
+                InfoTile(label: 'Service', value: ch.service, icon: Icons.account_tree_outlined),
               ],
-              DossierInfoRow(label: 'Suture', value: ch.suture.label),
+              InfoTile(label: 'Suture', value: ch.suture.label, icon: Icons.construction_outlined),
             ],
           ),
         ),
@@ -613,68 +482,61 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     final p = v.protocole;
     return DossierSectionCard(
       title: 'J · Vaccination antirabique',
+      subtitle: 'Produit vaccinal utilisé',
       icon: Icons.vaccines,
       accent: EpidemiologyTheme.redPrimary,
       child: Column(
         children: [
-          DossierInfoRow(label: 'Type de vaccin', value: v.typeVaccin.label),
-          if (v.dci != null) DossierInfoRow(label: 'DCI', value: v.dci),
-          if (v.numeroLot != null) DossierInfoRow(label: 'N° de lot', value: v.numeroLot),
-          DossierInfoRow(label: 'Date de péremption', value: ddMMyyyy(v.datePeremption)),
-          DossierInfoRow(label: 'Voie', value: v.voie.label),
-          if (v.doseAdministree != null) DossierInfoRow(label: 'Dose administrée', value: '${v.doseAdministree} ml'),
-          const Divider(color: EpidemiologyTheme.warm100, height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Protocole',
-                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm400),
-                ),
-              ),
-              DossierChip(
-                label: '${p.type.label} · ${p.dosesRealisees}/${p.totalDoses}',
-                icon: Icons.timeline,
-                color: p.estTermine ? EpidemiologyTheme.teal : (p.aRetard ? EpidemiologyTheme.warning : EpidemiologyTheme.redPrimary),
-              ),
+          InfoGrid(
+            items: [
+              InfoTile(label: 'Type de vaccin', value: v.typeVaccin.label, icon: Icons.vaccines_outlined),
+              InfoTile(label: 'DCI', value: v.dci, icon: Icons.biotech_outlined),
+              InfoTile(label: 'N° de lot', value: v.numeroLot, icon: Icons.inventory_2_outlined),
+              InfoTile(label: 'Date de péremption', value: ddMMyyyy(v.datePeremption), icon: Icons.update),
+              InfoTile(label: 'Voie', value: v.voie.label, icon: Icons.gps_fixed),
+              InfoTile(label: 'Dose administrée', value: v.doseAdministree != null ? '${v.doseAdministree} ml' : null, icon: Icons.speed_outlined),
             ],
           ),
-          const SizedBox(height: 10),
-          ...p.doses.map((dose) {
-            final color = switch (dose.statut) {
-              DoseStatus.realisee => EpidemiologyTheme.teal,
-              DoseStatus.enRetard => EpidemiologyTheme.warning,
-              DoseStatus.manquee => EpidemiologyTheme.danger,
-              DoseStatus.prevue => EpidemiologyTheme.slate400,
-            };
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Icon(Icons.circle, size: 10, color: color),
-                  const SizedBox(width: 8),
-                  Text(
-                    dose.etiquette,
-                    style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600, color: EpidemiologyTheme.slate700),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      dose.statut.label,
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: p.estTermine
+                  ? EpidemiologyTheme.successLight
+                  : p.aRetard
+                      ? EpidemiologyTheme.warningLight
+                      : EpidemiologyTheme.warm50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  p.estTermine ? Icons.check_circle_outline : p.aRetard ? Icons.schedule : Icons.timeline,
+                  size: 16,
+                  color: p.estTermine ? EpidemiologyTheme.success : p.aRetard ? EpidemiologyTheme.warning : EpidemiologyTheme.info,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${p.type.label} · ${p.dosesRealisees}/${p.totalDoses} doses réalisées'
+                    '${p.aRetard ? ' — protocole en retard' : p.estTermine ? ' — protocole terminé' : ''}',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: p.estTermine ? EpidemiologyTheme.successDark : p.aRetard ? EpidemiologyTheme.warningDark : EpidemiologyTheme.slate700,
                     ),
                   ),
-                  Text(
-                    dose.dateReelle != null ? ddMMyyyy(dose.dateReelle) : ddMMyyyy(dose.datePrevue),
-                    style: GoogleFonts.inter(fontSize: 11.5, color: EpidemiologyTheme.warm500),
-                  ),
-                ],
-              ),
-            );
-          }),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          DoseTimeline(doses: p.doses),
           if (p.remarques != null) ...[
-            const SizedBox(height: 6),
-            DossierInfoRow(label: 'Remarques', value: p.remarques),
+            const SizedBox(height: 8),
+            InfoGrid(
+              items: [InfoTile(label: 'Remarques', value: p.remarques, icon: Icons.notes)],
+            ),
           ],
         ],
       ),
@@ -686,99 +548,74 @@ class _RabiesDossierDetailScreenState extends State<RabiesDossierDetailScreen> {
     final ab = d.antibiotiques;
     final tt = d.vaccinationTetanos;
     final autres = d.autresTraitements;
-    final tr = d.tracabilite;
-    final ev = d.evolution;
     return Column(
       children: [
         DossierSectionCard(
           title: 'K · Effets indésirables (MPVI)',
+          subtitle: 'Manifestation post-vaccinale indésirable',
           icon: Icons.warning_amber_rounded,
           accent: mpvi.present ? EpidemiologyTheme.warning : EpidemiologyTheme.slate400,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'MPVI présent', value: mpvi.present ? 'Oui' : 'Non'),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'MPVI présent', value: mpvi.present ? 'Oui' : 'Non', icon: Icons.warning_amber_rounded),
               if (mpvi.present) ...[
-                DossierInfoRow(label: 'Date d\'apparition', value: ddMMyyyy(mpvi.dateApparition)),
-                DossierInfoRow(label: 'Manifestations', value: mpvi.manifestations),
-                DossierInfoRow(label: 'Gravité', value: mpvi.gravite.label),
-                DossierInfoRow(label: 'Mesures prises', value: mpvi.mesuresPrises),
-                DossierInfoRow(label: 'Déclaration pharmacovigilance',
-                    value: mpvi.declarationPharmacovigilance ? 'Oui' : 'Non'),
+                InfoTile(label: 'Date d\'apparition', value: ddMMyyyy(mpvi.dateApparition), icon: Icons.event),
+                InfoTile(label: 'Manifestations', value: mpvi.manifestations, icon: Icons.notes),
+                InfoTile(label: 'Gravité', value: mpvi.gravite.label, icon: Icons.trending_up),
+                InfoTile(label: 'Mesures prises', value: mpvi.mesuresPrises, icon: Icons.medication_outlined),
+                InfoTile(
+                  label: 'Déclaration pharmacovigilance',
+                  value: mpvi.declarationPharmacovigilance ? 'Oui' : 'Non',
+                  icon: Icons.assignment_outlined,
+                ),
               ],
             ],
           ),
         ),
         DossierSectionCard(
           title: 'L · Antibiotiques',
+          subtitle: 'Prescription d\'antibioprophylaxie',
           icon: Icons.medication,
           accent: ab.estPrescrit ? EpidemiologyTheme.teal : EpidemiologyTheme.slate400,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Prescription', value: ab.prescription.label),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Prescription', value: ab.prescription.label, icon: Icons.medication_outlined),
               if (ab.estPrescrit) ...[
-                DossierInfoRow(label: 'Molécule', value: ab.molecule),
-                DossierInfoRow(label: 'Dose', value: ab.dose),
-                DossierInfoRow(label: 'Durée', value: ab.duree),
-                DossierInfoRow(label: 'Motif', value: ab.motif),
-                if (ab.observations != null) DossierInfoRow(label: 'Observations', value: ab.observations),
+                InfoTile(label: 'Molécule', value: ab.molecule, icon: Icons.science_outlined),
+                InfoTile(label: 'Dose', value: ab.dose, icon: Icons.speed_outlined),
+                InfoTile(label: 'Durée', value: ab.duree, icon: Icons.timeline),
+                InfoTile(label: 'Motif', value: ab.motif, icon: Icons.notes),
+                InfoTile(label: 'Observations', value: ab.observations, icon: Icons.notes),
               ],
             ],
           ),
         ),
         DossierSectionCard(
           title: 'M · Vaccination tétanos',
+          subtitle: 'Rappel VAT selon le statut vaccinal',
           icon: Icons.shield,
           accent: tt.estRealisee ? EpidemiologyTheme.teal : EpidemiologyTheme.slate400,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Statut', value: tt.statut.label),
-              DossierInfoRow(label: 'Type', value: tt.type.label),
-              DossierInfoRow(label: 'Date d\'administration', value: ddMMyyyy(tt.dateAdministration)),
-              if (tt.observations != null) DossierInfoRow(label: 'Observations', value: tt.observations),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Statut', value: tt.statut.label, icon: Icons.shield_outlined),
+              InfoTile(label: 'Type', value: tt.type.label, icon: Icons.vaccines_outlined),
+              InfoTile(label: 'Date d\'administration', value: ddMMyyyy(tt.dateAdministration), icon: Icons.event),
+              InfoTile(label: 'Observations', value: tt.observations, icon: Icons.notes),
             ],
           ),
         ),
         DossierSectionCard(
           title: 'N · Autres traitements',
+          subtitle: 'Traitements complémentaires',
           icon: Icons.medication_liquid,
           accent: autres.present ? EpidemiologyTheme.teal : EpidemiologyTheme.slate400,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Traitement', value: autres.present ? 'Oui' : 'Non'),
+          child: InfoGrid(
+            items: [
+              InfoTile(label: 'Traitement', value: autres.present ? 'Oui' : 'Non', icon: Icons.medication_liquid_outlined),
               if (autres.present) ...[
-                DossierInfoRow(label: 'Description', value: autres.description),
-                if (autres.observations != null) DossierInfoRow(label: 'Observations', value: autres.observations),
+                InfoTile(label: 'Description', value: autres.description, icon: Icons.notes),
+                InfoTile(label: 'Observations', value: autres.observations, icon: Icons.notes),
               ],
-            ],
-          ),
-        ),
-        DossierSectionCard(
-          title: 'O · Traçabilité',
-          icon: Icons.receipt_long,
-          accent: EpidemiologyTheme.slate500,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Carte de vaccination', value: tr.carteVaccination.label),
-              if (tr.carteRemise && tr.numeroCarte != null) DossierInfoRow(label: 'N° de carte', value: tr.numeroCarte),
-              if (tr.carteRemisePar != null) DossierInfoRow(label: 'Carte remise par', value: tr.carteRemisePar!.nomComplet),
-              if (tr.dateCarteRemise != null) DossierInfoRow(label: 'Date de remise', value: ddMMyyyy(tr.dateCarteRemise)),
-              DossierInfoRow(label: 'Registre', value: tr.registre.label),
-              if (tr.patientRepertorie && tr.numeroRegistre != null) DossierInfoRow(label: 'N° de registre', value: tr.numeroRegistre),
-              if (tr.registreRenseignePar != null) DossierInfoRow(label: 'Inscription par', value: tr.registreRenseignePar!.nomComplet),
-              if (tr.dateInscriptionRegistre != null) DossierInfoRow(label: 'Date d\'inscription', value: ddMMyyyy(tr.dateInscriptionRegistre)),
-              if (tr.remarques != null) DossierInfoRow(label: 'Remarques', value: tr.remarques),
-            ],
-          ),
-        ),
-        DossierSectionCard(
-          title: 'P · Évolution du dossier',
-          icon: Icons.flag,
-          accent: ev.estClos ? EpidemiologyTheme.teal : EpidemiologyTheme.warning,
-          child: Column(
-            children: [
-              DossierInfoRow(label: 'Résultat', value: ev.resultat.label),
-              if (ev.dateCloture != null) DossierInfoRow(label: 'Date de clôture', value: ddMMyyyy(ev.dateCloture)),
-              if (ev.observations != null) DossierInfoRow(label: 'Observations', value: ev.observations),
             ],
           ),
         ),

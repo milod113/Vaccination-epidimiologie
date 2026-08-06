@@ -69,6 +69,9 @@ class DossierSectionCard extends StatelessWidget {
   final IconData icon;
   final Color accent;
   final Widget child;
+  final String? letter;
+  final String? subtitle;
+  final Widget? trailing;
 
   const DossierSectionCard({
     super.key,
@@ -76,53 +79,124 @@ class DossierSectionCard extends StatelessWidget {
     required this.icon,
     required this.accent,
     required this.child,
+    this.letter,
+    this.subtitle,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: EpidemiologyTheme.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: EpidemiologyTheme.warm100),
-        boxShadow: EpidemiologyTheme.shadowSm,
+        border: Border.all(color: EpidemiologyTheme.warm150),
+        boxShadow: [
+          BoxShadow(
+            color: EpidemiologyTheme.blackWith(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: EpidemiologyTheme.warmShadow(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _header(),
+            Padding(padding: const EdgeInsets.all(18), child: child),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _header() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [accent.withValues(alpha: 0.12), accent.withValues(alpha: 0.03)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        border: Border(bottom: BorderSide(color: accent.withValues(alpha: 0.12))),
+      ),
+      child: Row(
+        children: [
+          if (letter != null) ...[
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [accent.withValues(alpha: 0.10), accent.withValues(alpha: 0.02)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+                color: accent.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Text(
+                letter!,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: accent,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(icon, size: 18, color: accent),
-                  const SizedBox(width: 10),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: accent.withValues(alpha: 0.18)),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, size: 18, color: accent),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: EpidemiologyTheme.slate900,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 1),
                   Text(
-                    title,
+                    subtitle!,
                     style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: accent,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: EpidemiologyTheme.slate500,
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: child,
-            ),
-          ],
-        ),
+          ),
+          ?trailing,
+        ],
       ),
     );
   }

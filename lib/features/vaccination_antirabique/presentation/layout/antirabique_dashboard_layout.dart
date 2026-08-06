@@ -1,15 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
+import '../../../../injection_container.dart' as di;
+import '../../data/models/dashboard_antirabique_models.dart';
 import '../../data/models/patient_antirabique_model.dart';
+import '../../domain/repositories/dashboard_antirabique_repository.dart';
+import '../../domain/repositories/patient_antirabique_repository.dart';
+import '../../domain/repositories/rabies_dossier_repository.dart';
+import '../../domain/repositories/stock_repository.dart';
 import '../screens/create_patient_screen.dart';
 import '../screens/dashboard_antirabique.dart';
-import '../screens/patient_list_antirabique.dart';
+import '../screens/evaluation_initiale_screen.dart';
 import '../screens/patient_detail_antirabique.dart';
+import '../screens/patient_list_antirabique.dart';
 import '../screens/rabies_dossier_detail_screen.dart';
 import '../screens/rabies_dossier_list_screen.dart';
-import '../screens/tabs/stock_dashboard.dart';
+import '../screens/rabies_follow_up_screen.dart';
+import '../screens/rabies_j0_form_screen.dart';
+import '../screens/rabies_traceability_screen.dart';
+import '../screens/rabies_vaccination_book_screen.dart';
+import '../screens/tabs/certificat_screen.dart';
+import '../screens/tabs/protocole_vaccinal_tab.dart';
 import '../screens/tabs/scanner_lot_screen.dart';
+import '../screens/tabs/stock_dashboard.dart';
+import '../screens/tabs/suivi_clinique_tab.dart';
+import '../widgets/sidebar/antirabique_sidebar.dart';
+import '../widgets/sidebar/sidebar_models.dart';
 
 class AntirabiqueDashboardLayout extends StatefulWidget {
   const AntirabiqueDashboardLayout({super.key});
@@ -21,11 +37,42 @@ class AntirabiqueDashboardLayout extends StatefulWidget {
 class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout> {
   String? _selectedPatientId;
   String? _selectedDossierId;
-  int _currentNavIndex = 0;
+  AntirabiqueDestination _currentDest = AntirabiqueDestination.dashboard;
   int _reloadToken = 0;
+  bool _collapsed = false;
 
-  /// Ouvre l'écran d'admission ; à la création, rafraîchit la liste et
-  /// sélectionne le nouveau patient.
+  DashboardAntirabiqueData? _dash;
+  int _dossierCount = 0;
+  int _stockAlertes = 0;
+
+  String get _resolvedPatientId => _selectedPatientId ?? 'PAT-001';
+  String get _resolvedDossierId => _selectedDossierId ?? 'RAB-001';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSidebarData();
+  }
+
+  /// Charge les compteurs / indicateurs affichés dans la sidebar (mock data).
+  Future<void> _loadSidebarData() async {
+    try {
+      final dash = await di.sl<DashboardAntirabiqueRepository>().getDashboardData();
+      final dossiers = await di.sl<RabiesDossierRepository>().getDossiers();
+      final stock = await di.sl<StockRepository>().getStockStats();
+      if (!mounted) return;
+      setState(() {
+        _dash = dash;
+        _dossierCount = dossiers.length;
+        _stockAlertes = stock.lotsPeremptibles + stock.lotsExpires;
+      });
+    } catch (_) {
+      // Les valeurs par défaut restent appliquées si le chargement mock échoue.
+    }
+  }
+
+  /// Ouvre l'écran d'admission ; à la création, bascule sur la liste des
+  /// patients avec sélection du nouveau patient.
   Future<void> _openCreatePatient() async {
     final created = await Navigator.of(context).push<PatientAntirabiqueModel>(
       MaterialPageRoute(builder: (_) => const CreatePatientScreen()),
@@ -34,9 +81,208 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
     setState(() {
       _reloadToken++;
       _selectedPatientId = created.id;
-      final isWide = MediaQuery.of(context).size.width > 800;
-      _currentNavIndex = isWide ? 0 : 1;
+      _currentDest = AntirabiqueDestination.patients;
     });
+  }
+
+  void _openRoute(Widget screen) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Future<void> _pushPatient(
+      Widget Function(String patientId, String nomComplet) builder) async {
+    final id = _resolvedPatientId;
+    String nom = id;
+    try {
+      final p = await di.sl<PatientAntirabiqueRepository>().getPatientById(id);
+      nom = p?.nomComplet ?? id;
+    } catch (_) {}
+    if (!mounted) return;
+    _openRoute(builder(id, nom));
+  }
+
+  Widget _standalonePage(String title, Widget child) {
+    return Scaffold(
+      backgroundColor: EpidemiologyTheme.warm50,
+      appBar: AppBar(
+        title: Text(title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
+      body: child,
+    );
+  }
+
+  void _handleNavigate(AntirabiqueDestination dest) {
+    switch (dest) {
+      case AntirabiqueDestination.dashboard:
+        setState(() {
+          _currentDest = AntirabiqueDestination.dashboard;
+          _selectedPatientId = null;
+          _selectedDossierId = null;
+        });
+      case AntirabiqueDestination.patients:
+        setState(() => _currentDest = AntirabiqueDestination.patients);
+      case AntirabiqueDestination.dossiers:
+        setState(() => _currentDest = AntirabiqueDestination.dossiers);
+      case AntirabiqueDestination.evaluation:
+        _pushPatient((id, _) => EvaluationInitialeScreen(patientId: id));
+      case AntirabiqueDestination.carnet:
+        _pushPatient((id, _) => RabiesVaccinationBookScreen(patientId: id));
+      case AntirabiqueDestination.protocoles:
+        _pushPatient((id, _) => ProtocoleVaccinalTab(patientId: id));
+      case AntirabiqueDestination.suivi:
+        _pushPatient((id, _) => _standalonePage('Suivi clinique', SuiviCliniqueTab(patientId: id)));
+      case AntirabiqueDestination.tracabilite:
+        _openRoute(RabiesTraceabilityScreen(dossierId: _resolvedDossierId));
+      case AntirabiqueDestination.certificats:
+        _pushPatient((id, nom) => CertificatScreen(patientId: id, patientNom: nom));
+      case AntirabiqueDestination.stocks:
+        _openRoute(const StockDashboard());
+      case AntirabiqueDestination.scanner:
+        _openRoute(const ScannerLotScreen());
+      case AntirabiqueDestination.parametres:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Paramètres : bientôt disponible')),
+        );
+    }
+  }
+
+  // ── Sections & données de la sidebar ────────────────────────────────
+  List<SidebarSection> _buildSections() {
+    return [
+      const SidebarSection('Navigation', [
+        SidebarNavItemModel(
+          label: 'Dashboard',
+          icon: Icons.space_dashboard,
+          destination: AntirabiqueDestination.dashboard,
+        ),
+      ]),
+      SidebarSection('Dossiers cliniques', [
+        SidebarNavItemModel(
+          label: 'Patients',
+          icon: Icons.people_outline,
+          destination: AntirabiqueDestination.patients,
+          badge: _dash?.patientsEnSuivi ?? 9,
+        ),
+        SidebarNavItemModel(
+          label: 'Dossiers',
+          icon: Icons.folder_copy_outlined,
+          destination: AntirabiqueDestination.dossiers,
+          badge: _dossierCount > 0 ? _dossierCount : 11,
+        ),
+      ]),
+      const SidebarSection('Suivi & protocole', [
+        SidebarNavItemModel(
+          label: 'Évaluation J0',
+          icon: Icons.assignment,
+          destination: AntirabiqueDestination.evaluation,
+        ),
+        SidebarNavItemModel(
+          label: 'Carnet vaccinal',
+          icon: Icons.menu_book_outlined,
+          destination: AntirabiqueDestination.carnet,
+        ),
+        SidebarNavItemModel(
+          label: 'Protocoles',
+          icon: Icons.schedule_outlined,
+          destination: AntirabiqueDestination.protocoles,
+          badge: 2,
+          badgeTone: SidebarBadgeTone.warning,
+        ),
+        SidebarNavItemModel(
+          label: 'Suivi clinique',
+          icon: Icons.checklist_rtl,
+          destination: AntirabiqueDestination.suivi,
+          badge: 3,
+          badgeTone: SidebarBadgeTone.danger,
+        ),
+        SidebarNavItemModel(
+          label: 'Traçabilité',
+          icon: Icons.account_tree_outlined,
+          destination: AntirabiqueDestination.tracabilite,
+        ),
+      ]),
+      SidebarSection('Approvisionnement', [
+        SidebarNavItemModel(
+          label: 'Stocks',
+          icon: Icons.inventory_2_outlined,
+          destination: AntirabiqueDestination.stocks,
+          badge: _stockAlertes > 0 ? _stockAlertes : null,
+          badgeTone: SidebarBadgeTone.warning,
+        ),
+        const SidebarNavItemModel(
+          label: 'Scanner',
+          icon: Icons.qr_code_scanner,
+          destination: AntirabiqueDestination.scanner,
+        ),
+        const SidebarNavItemModel(
+          label: 'Certificats',
+          icon: Icons.verified_outlined,
+          destination: AntirabiqueDestination.certificats,
+        ),
+      ]),
+    ];
+  }
+
+  List<SidebarQuickAction> _buildQuickActions() {
+    return [
+      SidebarQuickAction(
+        label: 'Nouveau patient',
+        icon: Icons.person_add_alt,
+        color: EpidemiologyTheme.success,
+        onTap: _openCreatePatient,
+      ),
+      SidebarQuickAction(
+        label: 'Créer dossier',
+        icon: Icons.note_add,
+        color: EpidemiologyTheme.redPrimary,
+        onTap: () => _openRoute(RabiesJ0FormScreen(dossierId: _resolvedDossierId)),
+      ),
+      SidebarQuickAction(
+        label: 'Lancer J0',
+        icon: Icons.play_circle_outline,
+        color: EpidemiologyTheme.warning,
+        onTap: () => _openRoute(RabiesFollowUpScreen(dossierId: _resolvedDossierId)),
+      ),
+      SidebarQuickAction(
+        label: 'Scanner lot',
+        icon: Icons.qr_code_scanner,
+        color: EpidemiologyTheme.indigo,
+        onTap: () => _openRoute(const ScannerLotScreen()),
+      ),
+    ];
+  }
+
+  List<SidebarStatsEntry> _buildStats() {
+    return [
+      SidebarStatsEntry(
+        value: '${_dash?.patientsEnSuivi ?? 9}',
+        label: 'Patients en suivi',
+        icon: Icons.people,
+        color: EpidemiologyTheme.success,
+      ),
+      SidebarStatsEntry(
+        value: '${_dash?.vaccinationsDuJour ?? 5}',
+        label: 'Doses du jour',
+        icon: Icons.vaccines,
+        color: EpidemiologyTheme.redMedium,
+      ),
+      SidebarStatsEntry(
+        value: '${_dash?.alertesCritiques ?? 3}',
+        label: 'Alertes critiques',
+        icon: Icons.error_outline,
+        color: EpidemiologyTheme.danger,
+      ),
+      SidebarStatsEntry(
+        value: '${_dash?.patientsEnRetard ?? 2}',
+        label: 'En retard',
+        icon: Icons.warning_amber,
+        color: EpidemiologyTheme.warning,
+      ),
+    ];
   }
 
   @override
@@ -48,9 +294,7 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
           backgroundColor: EpidemiologyTheme.warm50,
           body: Container(
             decoration: BoxDecoration(gradient: EpidemiologyTheme.surfaceGradient),
-            child: SafeArea(
-              child: isWide ? _buildWideLayout() : _buildNarrowLayout(),
-            ),
+            child: SafeArea(child: isWide ? _buildWideLayout() : _buildNarrowLayout()),
           ),
         );
       },
@@ -73,48 +317,55 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                width: 380,
-                child: Column(
-                  children: [
-                    _buildSidebarHeader(),
-                    Container(height: 1, color: EpidemiologyTheme.warm100),
-                    Expanded(
-                      child: _currentNavIndex == 1
-                          ? RabiesDossierListScreen(
-                              onDossierSelected: (id) => setState(() => _selectedDossierId = id),
-                            )
-                          : PatientListAntirabique(
-                              onPatientSelected: (id) => setState(() => _selectedPatientId = id),
-                              onCreatePatient: _openCreatePatient,
-                              reloadToken: _reloadToken,
-                            ),
-                    ),
-                  ],
-                ),
+              AntirabiqueSidebar(
+                sections: _buildSections(),
+                current: _currentDest,
+                onNavigate: _handleNavigate,
+                quickActions: _buildQuickActions(),
+                stats: _buildStats(),
+                collapsed: _collapsed,
+                onToggleCollapsed: () => setState(() => _collapsed = !_collapsed),
               ),
-              Container(width: 1, color: EpidemiologyTheme.warm150),
-              Expanded(
-                child: _currentNavIndex == 1
-                    ? _selectedDossierId != null
-                        ? RabiesDossierDetailScreen(
-                            dossierId: _selectedDossierId!,
-                            onBack: () => setState(() => _selectedDossierId = null),
-                          )
-                        : DashboardAntirabique(onAdmitPatient: _openCreatePatient)
-                    : _selectedPatientId != null
-                        ? PatientDetailAntirabique(
-                            patientId: _selectedPatientId!,
-                            onBack: () => setState(() => _selectedPatientId = null),
-                          )
-                        : DashboardAntirabique(onAdmitPatient: _openCreatePatient),
-              ),
+              Container(width: 1, color: EpidemiologyTheme.warm150.withValues(alpha: 0.8)),
+              Expanded(child: _buildMainContent()),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildMainContent() {
+    switch (_currentDest) {
+      case AntirabiqueDestination.patients:
+        return _selectedPatientId != null
+            ? PatientDetailAntirabique(
+                patientId: _selectedPatientId!,
+                onBack: () => setState(() => _selectedPatientId = null),
+              )
+            : PatientListAntirabique(
+                onPatientSelected: (id) => setState(() => _selectedPatientId = id),
+                onCreatePatient: _openCreatePatient,
+                reloadToken: _reloadToken,
+              );
+      case AntirabiqueDestination.dossiers:
+        return _selectedDossierId != null
+            ? RabiesDossierDetailScreen(
+                dossierId: _selectedDossierId!,
+                onBack: () => setState(() => _selectedDossierId = null),
+              )
+            : RabiesDossierListScreen(
+                onDossierSelected: (id) => setState(() => _selectedDossierId = id),
+              );
+      case AntirabiqueDestination.dashboard:
+      default:
+        return DashboardAntirabique(
+          onNavigateToListe: () => setState(() => _currentDest = AntirabiqueDestination.patients),
+          onAdmitPatient: _openCreatePatient,
+        );
+    }
   }
 
   // ── Narrow layout (≤800px) ────────────────────────────────────────
@@ -124,10 +375,10 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
         _buildMobileNavBar(),
         Expanded(
           child: IndexedStack(
-            index: _currentNavIndex,
+            index: _narrowIndex,
             children: [
               DashboardAntirabique(
-                onNavigateToListe: () => setState(() => _currentNavIndex = 1),
+                onNavigateToListe: () => setState(() => _currentDest = AntirabiqueDestination.patients),
                 onAdmitPatient: _openCreatePatient,
               ),
               PatientListAntirabique(
@@ -153,74 +404,13 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
     );
   }
 
-  // ── Sidebar header ──────────────────────────────────────────────
-  Widget _buildSidebarHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-      decoration: BoxDecoration(gradient: EpidemiologyTheme.primaryGradientWarm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.biotech, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(child: Text('Vaccination\nAntirabique',
-                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white, height: 1.2))),
-              GestureDetector(
-                onTap: () => setState(() => _selectedPatientId = null),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.dashboard, color: Colors.white, size: 20),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              _sidebarBadge(Icons.people, 'Patients', active: _currentNavIndex == 0, onTap: () => setState(() => _currentNavIndex = 0)),
-              const SizedBox(width: 8),
-              _sidebarBadge(Icons.folder_copy, 'Dossiers', active: _currentNavIndex == 1, onTap: () => setState(() => _currentNavIndex = 1)),
-              const SizedBox(width: 8),
-              _sidebarBadge(Icons.inventory_2, 'Stocks', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StockDashboard()))),
-              const SizedBox(width: 8),
-              _sidebarBadge(Icons.qr_code_scanner, 'Scanner', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScannerLotScreen()))),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  int get _narrowIndex => switch (_currentDest) {
+    AntirabiqueDestination.patients => 1,
+    AntirabiqueDestination.dossiers => 2,
+    _ => 0,
+  };
 
-  Widget _sidebarBadge(IconData icon, String label, {VoidCallback? onTap, bool active = false}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? Colors.white.withValues(alpha: 0.28) : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 0.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.85)),
-            const SizedBox(width: 5),
-            Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Mobile nav bar ──────────────────────────────────────────────
+  // ── Mobile nav bar ───────────────────────────────────────────────
   Widget _buildMobileNavBar() {
     return Container(
       padding: EdgeInsets.only(left: 20, right: 12, top: MediaQuery.of(context).padding.top + 8, bottom: 8),
@@ -242,11 +432,11 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
             child: Row(
               children: [
-                _navButton(Icons.dashboard, 'Dashboard', 0),
-                _navButton(Icons.people, 'Patients', 1),
-                _navButton(Icons.folder_copy, 'Dossiers', 2),
-                _navIcon(Icons.inventory_2, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StockDashboard()))),
-                _navIcon(Icons.qr_code_scanner, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScannerLotScreen()))),
+                _navButton(Icons.dashboard, 'Dashboard', AntirabiqueDestination.dashboard),
+                _navButton(Icons.people, 'Patients', AntirabiqueDestination.patients),
+                _navButton(Icons.folder_copy, 'Dossiers', AntirabiqueDestination.dossiers),
+                _navIcon(Icons.inventory_2, () => _openRoute(const StockDashboard())),
+                _navIcon(Icons.qr_code_scanner, () => _openRoute(const ScannerLotScreen())),
               ],
             ),
           ),
@@ -265,10 +455,10 @@ class _AntirabiqueDashboardLayoutState extends State<AntirabiqueDashboardLayout>
     );
   }
 
-  Widget _navButton(IconData icon, String label, int index) {
-    final isActive = _currentNavIndex == index;
+  Widget _navButton(IconData icon, String label, AntirabiqueDestination dest) {
+    final isActive = _currentDest == dest;
     return GestureDetector(
-      onTap: () => setState(() => _currentNavIndex = index),
+      onTap: () => _handleNavigate(dest),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
