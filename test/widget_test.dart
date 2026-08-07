@@ -10,6 +10,7 @@ import 'package:epidemiology_antirabic/features/tetanus_exposure/presentation/sc
 import 'package:epidemiology_antirabic/features/tetanus_exposure/presentation/screens/tetanus_patient_list_screen.dart';
 import 'package:epidemiology_antirabic/features/tetanus_exposure/presentation/screens/tetanus_patient_detail_screen.dart';
 import 'package:epidemiology_antirabic/features/vaccination_antirabique/presentation/layout/antirabique_dashboard_layout.dart';
+import 'package:epidemiology_antirabic/features/vaccination_antirabique/presentation/screens/rabies_dossier_list_screen.dart';
 
 void main() {
   testWidgets('Plateforme Vaccination welcome dashboard renders', (
@@ -321,6 +322,52 @@ void main() {
     expect(find.text('Historique des actes'), findsOneWidget);
     expect(find.text('Kadi Amel'), findsOneWidget);
     expect(find.text('Enregistrer un acte'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Dossier antirabique list renders wide (desktop table)', (
+    tester,
+  ) async {
+    await di.sl.reset();
+    await di.initDependencies();
+    tester.view.physicalSize = const Size(1440, 1100);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: RabiesDossierListScreen())),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dossiers antirabiques'), findsWidgets);
+    expect(find.text('Filtres'), findsOneWidget);
+    expect(find.text('Total dossiers'), findsOneWidget);
+    expect(find.text('Urgents (cat. III)'), findsOneWidget);
+    // Vue tableau desktop (colonne de commande).
+    expect(find.text('Consulter'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Dossier antirabique list renders narrow (mobile cards)', (
+    tester,
+  ) async {
+    await di.sl.reset();
+    await di.initDependencies();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: RabiesDossierListScreen())),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dossiers antirabiques'), findsWidgets);
+    expect(find.text('Filtres'), findsOneWidget);
+    expect(find.text('Total dossiers'), findsOneWidget);
+    expect(find.text('Suivis en cours'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
