@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
@@ -173,8 +173,12 @@ class _TetanusDashboardLayoutState extends State<TetanusDashboardLayout> {
         return Scaffold(
           backgroundColor: EpidemiologyTheme.warm50,
           body: Container(
-            decoration: BoxDecoration(gradient: EpidemiologyTheme.surfaceGradient),
-            child: SafeArea(child: isWide ? _buildWideLayout() : _buildNarrowLayout()),
+            decoration: BoxDecoration(
+              gradient: EpidemiologyTheme.surfaceGradient,
+            ),
+            child: SafeArea(
+              child: isWide ? _buildWideLayout() : _buildNarrowLayout(),
+            ),
           ),
         );
       },
@@ -190,8 +194,16 @@ class _TetanusDashboardLayoutState extends State<TetanusDashboardLayout> {
           color: EpidemiologyTheme.white,
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
-            BoxShadow(color: EpidemiologyTheme.blackWith(0.08), blurRadius: 30, offset: const Offset(0, 6)),
-            BoxShadow(color: EpidemiologyTheme.warmShadow(0.04), blurRadius: 14, offset: const Offset(0, 3)),
+            BoxShadow(
+              color: EpidemiologyTheme.blackWith(0.08),
+              blurRadius: 30,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: EpidemiologyTheme.warmShadow(0.04),
+              blurRadius: 14,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: ClipRRect(
@@ -213,9 +225,13 @@ class _TetanusDashboardLayoutState extends State<TetanusDashboardLayout> {
                 stats: _buildStats(),
                 statsTitle: 'RÉSUMÉ DU CENTRE',
                 collapsed: _collapsed,
-                onToggleCollapsed: () => setState(() => _collapsed = !_collapsed),
+                onToggleCollapsed: () =>
+                    setState(() => _collapsed = !_collapsed),
               ),
-              Container(width: 1, color: EpidemiologyTheme.warm150.withValues(alpha: 0.8)),
+              Container(
+                width: 1,
+                color: EpidemiologyTheme.warm150.withValues(alpha: 0.8),
+              ),
               Expanded(child: _buildMainContent()),
             ],
           ),
@@ -244,30 +260,63 @@ class _TetanusDashboardLayoutState extends State<TetanusDashboardLayout> {
 
   Widget _buildMobileNavBar() {
     return Container(
-      padding: EdgeInsets.only(left: 20, right: 12, top: MediaQuery.of(context).padding.top + 8, bottom: 8),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top: MediaQuery.of(context).padding.top + 8,
+        bottom: 8,
+      ),
       decoration: BoxDecoration(
         gradient: EpidemiologyTheme.primaryGradientWarm,
-        boxShadow: [BoxShadow(color: EpidemiologyTheme.redDeep.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: EpidemiologyTheme.redDeep.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: const Icon(Icons.healing, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Text('Tétanos post-exposition',
-                style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.2)),
+            child: Text(
+              'Tétanos post-exposition',
+              style: GoogleFonts.inter(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.2,
+              ),
+            ),
           ),
           Container(
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: Row(
               children: [
-                _navIcon(Icons.people, () => _openRoute(const TetanusPatientListScreen())),
-                _navIcon(Icons.assignment_outlined, () => _openRoute(const TetanusEvaluationScreen())),
-                _navIcon(Icons.history_rounded, () => _openRoute(const TetanusHistoriqueScreen())),
+                _navIcon(
+                  Icons.people,
+                  () => _openRoute(const TetanusPatientListScreen()),
+                ),
+                _navIcon(
+                  Icons.assignment_outlined,
+                  () => _openRoute(const TetanusEvaluationScreen()),
+                ),
+                _navIcon(
+                  Icons.history_rounded,
+                  () => _openRoute(const TetanusHistoriqueScreen()),
+                ),
               ],
             ),
           ),

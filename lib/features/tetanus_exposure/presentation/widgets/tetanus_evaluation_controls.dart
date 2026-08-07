@@ -32,120 +32,124 @@ class TetanusChoiceChips<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final accentColor = accent ?? EpidemiologyTheme.redPrimary;
     final wide = gridColumns; // null => auto wrap
-    return LayoutBuilder(builder: (context, constraints) {
-      final cols = wide ??
-          (constraints.maxWidth >= 560
-              ? 2
-              : constraints.maxWidth >= 320
-                  ? 2
-                  : 1);
-      if (cols <= 1) {
-        return Column(
-          children: options.map((o) => _chip(o, accentColor)).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols =
+            wide ??
+            (constraints.maxWidth >= 560
+                ? 2
+                : constraints.maxWidth >= 320
+                ? 2
+                : 1);
+        if (cols <= 1) {
+          return Column(
+            children: options.map((o) => _chip(o, accentColor)).toList(),
+          );
+        }
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final o in options)
+              SizedBox(
+                width: (constraints.maxWidth - 10) / cols,
+                child: _chip(o, accentColor),
+              ),
+          ],
         );
-      }
-      return Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          for (final o in options)
-            SizedBox(
-              width: (constraints.maxWidth - 10) / cols,
-              child: _chip(o, accentColor),
-            ),
-        ],
-      );
-    });
+      },
+    );
   }
 
   Widget _chip(TetanusChoiceOption<T> o, Color accent) {
     final isSelected = o.value == selected;
     return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => onChanged(o.value),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: isSelected
-                  ? LinearGradient(
-                      colors: [
-                        accent,
-                        accent.withValues(alpha: 0.82),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              color: isSelected ? null : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isSelected
-                    ? Colors.transparent
-                    : EpidemiologyTheme.warm150,
-                width: 1.4,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : EpidemiologyTheme.shadowSm,
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => onChanged(o.value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [accent, accent.withValues(alpha: 0.82)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? Colors.transparent
+                  : EpidemiologyTheme.warm150,
+              width: 1.4,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    if (o.icon != null) ...[
-                      Icon(o.icon,
-                          size: 16,
-                          color: isSelected
-                              ? Colors.white
-                              : accent),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Text(
-                        o.label,
-                        style: GoogleFonts.cairo(
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : EpidemiologyTheme.warm800,
-                        ),
-                      ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    if (isSelected)
-                      Icon(Icons.check_circle_rounded,
-                          size: 16, color: Colors.white),
+                  ]
+                : EpidemiologyTheme.shadowSm,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  if (o.icon != null) ...[
+                    Icon(
+                      o.icon,
+                      size: 16,
+                      color: isSelected ? Colors.white : accent,
+                    ),
+                    const SizedBox(width: 8),
                   ],
-                ),
-                if (o.help != null) ...[
-                  const SizedBox(height: 5),
-                  Text(
-                    o.help!,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11,
-                      height: 1.3,
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.85)
-                          : EpidemiologyTheme.warm400,
+                  Expanded(
+                    child: Text(
+                      o.label,
+                      style: GoogleFonts.cairo(
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : EpidemiologyTheme.warm800,
+                      ),
                     ),
                   ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                 ],
+              ),
+              if (o.help != null) ...[
+                const SizedBox(height: 5),
+                Text(
+                  o.help!,
+                  style: GoogleFonts.cairo(
+                    fontSize: 11,
+                    height: 1.3,
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.85)
+                        : EpidemiologyTheme.warm400,
+                  ),
+                ),
               ],
-            ),
-),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -193,8 +197,11 @@ class TetanusToggleTile extends StatelessWidget {
           child: Row(
             children: [
               if (icon != null) ...[
-                Icon(icon,
-                    size: 20, color: value ? accentColor : EpidemiologyTheme.warm400),
+                Icon(
+                  icon,
+                  size: 20,
+                  color: value ? accentColor : EpidemiologyTheme.warm400,
+                ),
                 const SizedBox(width: 12),
               ],
               Expanded(
@@ -205,9 +212,7 @@ class TetanusToggleTile extends StatelessWidget {
                       label,
                       style: GoogleFonts.cairo(
                         fontSize: 13,
-                        fontWeight: value
-                            ? FontWeight.w700
-                            : FontWeight.w500,
+                        fontWeight: value ? FontWeight.w700 : FontWeight.w500,
                         color: value
                             ? EpidemiologyTheme.warm800
                             : EpidemiologyTheme.warm600,
@@ -232,15 +237,11 @@ class TetanusToggleTile extends StatelessWidget {
                 width: 46,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: value
-                      ? accentColor
-                      : EpidemiologyTheme.warm200,
+                  color: value ? accentColor : EpidemiologyTheme.warm200,
                   borderRadius: BorderRadius.circular(13),
                 ),
                 padding: const EdgeInsets.all(3),
-                alignment: value
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
+                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   width: 20,
                   height: 20,
@@ -249,8 +250,9 @@ class TetanusToggleTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                          color: EpidemiologyTheme.blackWith(0.15),
-                          blurRadius: 3),
+                        color: EpidemiologyTheme.blackWith(0.15),
+                        blurRadius: 3,
+                      ),
                     ],
                   ),
                 ),
@@ -286,7 +288,10 @@ class TetanusAlertItem extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withValues(alpha: 0.08), color.withValues(alpha: 0.03)],
+          colors: [
+            color.withValues(alpha: 0.08),
+            color.withValues(alpha: 0.03),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -356,7 +361,10 @@ class TetanusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.05)],
+          colors: [
+            color.withValues(alpha: 0.12),
+            color.withValues(alpha: 0.05),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

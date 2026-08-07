@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
@@ -23,7 +23,8 @@ class TetanusEvaluationScreen extends StatefulWidget {
   const TetanusEvaluationScreen({super.key, this.patientId});
 
   @override
-  State<TetanusEvaluationScreen> createState() => _TetanusEvaluationScreenState();
+  State<TetanusEvaluationScreen> createState() =>
+      _TetanusEvaluationScreenState();
 }
 
 class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
@@ -80,7 +81,9 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
   }
 
   void _prefill(String patientId) {
-    final patient = GetIt.instance<TetanusRepository>().getPatientById(patientId);
+    final patient = GetIt.instance<TetanusRepository>().getPatientById(
+      patientId,
+    );
     if (patient == null) return;
     setState(() {
       _woundType = patient.typePlaie;
@@ -113,21 +116,28 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
       backgroundColor: EpidemiologyTheme.warm50,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded,
-              color: EpidemiologyTheme.warm700),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: EpidemiologyTheme.warm700,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Évaluation tétanique',
-            style: GoogleFonts.cairo(
-                fontSize: 16, fontWeight: FontWeight.w800,
-                color: EpidemiologyTheme.warm900)),
+        title: Text(
+          'Évaluation tétanique',
+          style: GoogleFonts.cairo(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: EpidemiologyTheme.warm900,
+          ),
+        ),
         centerTitle: false,
         backgroundColor: EpidemiologyTheme.white,
         surfaceTintColor: EpidemiologyTheme.white,
         elevation: 0,
         scrolledUnderElevation: 1,
         shape: Border(
-            bottom: BorderSide(color: EpidemiologyTheme.warm100, width: 1)),
+          bottom: BorderSide(color: EpidemiologyTheme.warm100, width: 1),
+        ),
       ),
       body: isWide ? _buildWide() : _buildNarrow(),
       bottomNavigationBar: TetanusActionBar(
@@ -172,7 +182,9 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
         TetanusEvaluationHero(
-          nom: widget.patientId != null ? _patientName() : 'Nouvelle évaluation',
+          nom: widget.patientId != null
+              ? _patientName()
+              : 'Nouvelle évaluation',
           corps: widget.patientId != null
               ? _patientCorps()
               : 'Service d\'épidémiologie · ${_todayLabel()}',
@@ -296,9 +308,7 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
                 ],
                 selected: _nbDoses == null
                     ? null
-                    : (_nbDoses! >= 5
-                        ? '5+'
-                        : '$_nbDoses'),
+                    : (_nbDoses! >= 5 ? '5+' : '$_nbDoses'),
                 onChanged: (v) => setState(() => _nbDoses = int.tryParse(v)),
                 accent: EpidemiologyTheme.indigo,
               ),
@@ -309,8 +319,9 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
                   hintText: 'ex : 2023-03-15',
                   prefixIcon: Icon(Icons.event_outlined, size: 18),
                 ),
-                onChanged: (v) => setState(() => _derniereDose =
-                    v.trim().isEmpty ? null : v.trim()),
+                onChanged: (v) => setState(
+                  () => _derniereDose = v.trim().isEmpty ? null : v.trim(),
+                ),
               ),
               const SizedBox(height: 10),
             ],
@@ -397,8 +408,7 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
         SnackBar(
           content: Text(
             'Évaluation enregistrée · ${_resolution.decision.label}',
-            style: GoogleFonts.cairo(
-                fontSize: 13, fontWeight: FontWeight.w600),
+            style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w600),
           ),
           behavior: SnackBarBehavior.floating,
           backgroundColor: EpidemiologyTheme.redPrimary,
@@ -413,7 +423,9 @@ class _TetanusEvaluationScreenState extends State<TetanusEvaluationScreen> {
 
   TetanusPatientModel? get _patient {
     if (widget.patientId == null) return null;
-    return GetIt.instance<TetanusRepository>().getPatientById(widget.patientId!);
+    return GetIt.instance<TetanusRepository>().getPatientById(
+      widget.patientId!,
+    );
   }
 
   String _patientName() => _patient?.nomComplet ?? 'Patient';

@@ -31,10 +31,7 @@ class TetanusStatusBadge extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _color.withValues(alpha: 0.25),
-          width: 1,
-        ),
+        border: Border.all(color: _color.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -114,10 +111,7 @@ class TetanusVaccinStatusBadge extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _color.withValues(alpha: 0.25),
-          width: 1,
-        ),
+        border: Border.all(color: _color.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -182,10 +176,7 @@ class TetanusDecisionBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: _color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _color.withValues(alpha: 0.25),
-          width: 1,
-        ),
+        border: Border.all(color: _color.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

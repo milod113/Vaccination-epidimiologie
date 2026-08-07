@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
@@ -73,7 +73,10 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
         const SizedBox(height: 14),
         _buildQuickAccessGrid(),
         const SizedBox(height: 28),
-        _buildSectionHeader('Conduite à tenir', Icons.medical_services_outlined),
+        _buildSectionHeader(
+          'Conduite à tenir',
+          Icons.medical_services_outlined,
+        ),
         const SizedBox(height: 14),
         _buildDecisionCard(),
       ],
@@ -146,8 +149,11 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.healing_rounded,
-                            color: Colors.white, size: 26),
+                        child: const Icon(
+                          Icons.healing_rounded,
+                          color: Colors.white,
+                          size: 26,
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -177,7 +183,10 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
@@ -185,8 +194,11 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.calendar_today,
-                                size: 13, color: Colors.white.withValues(alpha: 0.85)),
+                            Icon(
+                              Icons.calendar_today,
+                              size: 13,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               dateStr,
@@ -212,7 +224,10 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                       children: [
                         _heroStat('$total', 'Patients\nen suivi'),
                         const Spacer(),
-                        _heroStat('${_counts['enCours'] ?? 0}', 'Dossiers\nen cours'),
+                        _heroStat(
+                          '${_counts['enCours'] ?? 0}',
+                          'Dossiers\nen cours',
+                        ),
                         const Spacer(),
                         _heroStat('$urgent', 'Alertes\nactives'),
                         const Spacer(),
@@ -278,17 +293,54 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
         final items = [
-          _kpiCard('Patients', _counts['total'] ?? 0, Icons.people_outline, EpidemiologyTheme.info),
-          _kpiCard('En cours', _counts['enCours'] ?? 0, Icons.pending_outlined, EpidemiologyTheme.warning),
-          _kpiCard('Urgents', _counts['urgent'] ?? 0, Icons.warning_amber_outlined, EpidemiologyTheme.danger),
-          _kpiCard('Clos', _counts['clos'] ?? 0, Icons.check_circle_outline, EpidemiologyTheme.success),
+          _kpiCard(
+            'Patients',
+            _counts['total'] ?? 0,
+            Icons.people_outline,
+            EpidemiologyTheme.info,
+          ),
+          _kpiCard(
+            'En cours',
+            _counts['enCours'] ?? 0,
+            Icons.pending_outlined,
+            EpidemiologyTheme.warning,
+          ),
+          _kpiCard(
+            'Urgents',
+            _counts['urgent'] ?? 0,
+            Icons.warning_amber_outlined,
+            EpidemiologyTheme.danger,
+          ),
+          _kpiCard(
+            'Clos',
+            _counts['clos'] ?? 0,
+            Icons.check_circle_outline,
+            EpidemiologyTheme.success,
+          ),
         ];
         if (isWide) {
-          return Row(children: items.map((w) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: w))).toList());
+          return Row(
+            children: items
+                .map(
+                  (w) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: w,
+                    ),
+                  ),
+                )
+                .toList(),
+          );
         }
         return Wrap(
-          spacing: 8, runSpacing: 8,
-          children: items.map((w) => SizedBox(width: (constraints.maxWidth - 8) / 2, child: w)).toList(),
+          spacing: 8,
+          runSpacing: 8,
+          children: items
+              .map(
+                (w) =>
+                    SizedBox(width: (constraints.maxWidth - 8) / 2, child: w),
+              )
+              .toList(),
         );
       },
     );
@@ -315,7 +367,10 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.05)],
+                colors: [
+                  color.withValues(alpha: 0.12),
+                  color.withValues(alpha: 0.05),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -330,12 +385,18 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
               Text(
                 '$count',
                 style: GoogleFonts.inter(
-                  fontSize: 22, fontWeight: FontWeight.w800, color: EpidemiologyTheme.warm800),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: EpidemiologyTheme.warm800,
+                ),
               ),
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 12, fontWeight: FontWeight.w500, color: EpidemiologyTheme.warm400),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: EpidemiologyTheme.warm400,
+                ),
               ),
             ],
           ),
@@ -346,14 +407,30 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
 
   Widget _buildQuickAccessGrid() {
     final items = [
-      _quickAccessTile(Icons.person_add_rounded, 'Nouveau patient', 'Checklist initiale',
-          const TetanusEvaluationScreen()),
-      _quickAccessTile(Icons.list_alt_rounded, 'Liste des cas', 'Consulter les patients',
-          const TetanusPatientListScreen()),
-      _quickAccessTile(Icons.vaccines_rounded, 'Enregistrer acte', 'VAT, Ig, rappel',
-          const TetanusHistoriqueScreen()),
-      _quickAccessTile(Icons.history_rounded, 'Historique', 'Traçabilité des actes',
-          const TetanusHistoriqueScreen()),
+      _quickAccessTile(
+        Icons.person_add_rounded,
+        'Nouveau patient',
+        'Checklist initiale',
+        const TetanusEvaluationScreen(),
+      ),
+      _quickAccessTile(
+        Icons.list_alt_rounded,
+        'Liste des cas',
+        'Consulter les patients',
+        const TetanusPatientListScreen(),
+      ),
+      _quickAccessTile(
+        Icons.vaccines_rounded,
+        'Enregistrer acte',
+        'VAT, Ig, rappel',
+        const TetanusHistoriqueScreen(),
+      ),
+      _quickAccessTile(
+        Icons.history_rounded,
+        'Historique',
+        'Traçabilité des actes',
+        const TetanusHistoriqueScreen(),
+      ),
     ];
 
     return LayoutBuilder(
@@ -362,29 +439,52 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
         if (isWide) {
           return Row(
             children: [
-              Expanded(child: items[0]), const SizedBox(width: 12),
-              Expanded(child: items[1]), const SizedBox(width: 12),
-              Expanded(child: items[2]), const SizedBox(width: 12),
+              Expanded(child: items[0]),
+              const SizedBox(width: 12),
+              Expanded(child: items[1]),
+              const SizedBox(width: 12),
+              Expanded(child: items[2]),
+              const SizedBox(width: 12),
               Expanded(child: items[3]),
             ],
           );
         }
         return Column(
           children: [
-            Row(children: [Expanded(child: items[0]), const SizedBox(width: 10), Expanded(child: items[1])]),
+            Row(
+              children: [
+                Expanded(child: items[0]),
+                const SizedBox(width: 10),
+                Expanded(child: items[1]),
+              ],
+            ),
             const SizedBox(height: 10),
-            Row(children: [Expanded(child: items[2]), const SizedBox(width: 10), Expanded(child: items[3])]),
+            Row(
+              children: [
+                Expanded(child: items[2]),
+                const SizedBox(width: 10),
+                Expanded(child: items[3]),
+              ],
+            ),
           ],
         );
       },
     );
   }
 
-  Widget _quickAccessTile(IconData icon, String title, String subtitle, Widget destination) {
+  Widget _quickAccessTile(
+    IconData icon,
+    String title,
+    String subtitle,
+    Widget destination,
+  ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => destination)),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => destination),
+        ),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.all(18),
@@ -409,7 +509,11 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: EpidemiologyTheme.redPrimary, size: 22),
+                child: Icon(
+                  icon,
+                  color: EpidemiologyTheme.redPrimary,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -419,18 +523,27 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                     Text(
                       title,
                       style: GoogleFonts.inter(
-                        fontSize: 13, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm800),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: EpidemiologyTheme.warm800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: GoogleFonts.inter(
-                        fontSize: 11, color: EpidemiologyTheme.warm400),
+                        fontSize: 11,
+                        color: EpidemiologyTheme.warm400,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, size: 20, color: EpidemiologyTheme.warm300),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: EpidemiologyTheme.warm300,
+              ),
             ],
           ),
         ),
@@ -458,32 +571,59 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                   color: EpidemiologyTheme.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.medical_services_outlined,
-                    size: 18, color: EpidemiologyTheme.amber),
+                child: const Icon(
+                  Icons.medical_services_outlined,
+                  size: 18,
+                  color: EpidemiologyTheme.amber,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
                 'Conduite à tenir selon le statut vaccinal',
                 style: GoogleFonts.inter(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm800),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: EpidemiologyTheme.warm800,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _decisionRow('À jour', 'Plaie propre → Surveillance', 'Plaie tétanigène → Rappel (>5 ans)',
-              EpidemiologyTheme.success),
-          _decisionRow('Incomplet', 'Plaie propre → Rappel VAT', 'Plaie tétanigène → VAT + Ig',
-              EpidemiologyTheme.warning),
-          _decisionRow('Inconnu', 'Plaie propre → VAT', 'Plaie tétanigène → VAT + Ig',
-              EpidemiologyTheme.danger),
-          _decisionRow('Non vacciné', 'Plaie propre → VAT', 'Plaie tétanigène → VAT + Ig',
-              EpidemiologyTheme.danger),
+          _decisionRow(
+            'À jour',
+            'Plaie propre → Surveillance',
+            'Plaie tétanigène → Rappel (>5 ans)',
+            EpidemiologyTheme.success,
+          ),
+          _decisionRow(
+            'Incomplet',
+            'Plaie propre → Rappel VAT',
+            'Plaie tétanigène → VAT + Ig',
+            EpidemiologyTheme.warning,
+          ),
+          _decisionRow(
+            'Inconnu',
+            'Plaie propre → VAT',
+            'Plaie tétanigène → VAT + Ig',
+            EpidemiologyTheme.danger,
+          ),
+          _decisionRow(
+            'Non vacciné',
+            'Plaie propre → VAT',
+            'Plaie tétanigène → VAT + Ig',
+            EpidemiologyTheme.danger,
+          ),
         ],
       ),
     );
   }
 
-  Widget _decisionRow(String status, String cleanWound, String tetanigene, Color color) {
+  Widget _decisionRow(
+    String status,
+    String cleanWound,
+    String tetanigene,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -503,7 +643,10 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
             child: Text(
               status,
               style: GoogleFonts.inter(
-                  fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -514,12 +657,18 @@ class _TetanusDashboardBodyState extends State<TetanusDashboardBody> {
                 Text(
                   cleanWound,
                   style: GoogleFonts.inter(
-                      fontSize: 11, color: EpidemiologyTheme.warm600, height: 1.4),
+                    fontSize: 11,
+                    color: EpidemiologyTheme.warm600,
+                    height: 1.4,
+                  ),
                 ),
                 Text(
                   tetanigene,
                   style: GoogleFonts.inter(
-                      fontSize: 11, color: EpidemiologyTheme.warm600, height: 1.4),
+                    fontSize: 11,
+                    color: EpidemiologyTheme.warm600,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),

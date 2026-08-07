@@ -62,7 +62,11 @@ class TetanusPatientCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                const Divider(height: 1, color: EpidemiologyTheme.warm100, thickness: 1),
+                const Divider(
+                  height: 1,
+                  color: EpidemiologyTheme.warm100,
+                  thickness: 1,
+                ),
                 const SizedBox(height: 14),
                 _buildInfoRow(
                   Icons.healing_outlined,
@@ -84,7 +88,10 @@ class TetanusPatientCard extends StatelessWidget {
                     TetanusStatusBadge(
                       statut: patient.statutDossier,
                       fontSize: 10,
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     TetanusVaccinStatusBadge(
@@ -124,8 +131,11 @@ class TetanusPatientCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: (isUrgent ? EpidemiologyTheme.danger : EpidemiologyTheme.redDeep)
-                .withValues(alpha: 0.25),
+            color:
+                (isUrgent
+                        ? EpidemiologyTheme.danger
+                        : EpidemiologyTheme.redDeep)
+                    .withValues(alpha: 0.25),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -139,7 +149,10 @@ class TetanusPatientCard extends StatelessWidget {
               .take(2)
               .join(''),
           style: GoogleFonts.inter(
-              fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -152,19 +165,30 @@ class TetanusPatientCard extends StatelessWidget {
         Text(
           patient.nomComplet,
           style: GoogleFonts.inter(
-              fontSize: 15, fontWeight: FontWeight.w700, color: EpidemiologyTheme.warm800),
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: EpidemiologyTheme.warm800,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           '${patient.age} ans \u2022 ${patient.sexe} \u2022 ${patient.id}',
           style: GoogleFonts.inter(
-              fontSize: 12, color: EpidemiologyTheme.warm400, fontWeight: FontWeight.w500),
+            fontSize: 12,
+            color: EpidemiologyTheme.warm400,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String left, String right, [Color? accent]) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String left,
+    String right, [
+    Color? accent,
+  ]) {
     return Row(
       children: [
         Icon(icon, size: 15, color: accent ?? EpidemiologyTheme.warm400),
@@ -220,7 +244,11 @@ class TetanusPatientCard extends StatelessWidget {
           Text(
             'URGENT',
             style: GoogleFonts.inter(
-                fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
           ),
         ],
       ),

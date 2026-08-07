@@ -19,8 +19,10 @@ class TetanusEvaluationHero extends StatelessWidget {
 
   /// Nom du patient (ou « Nouvelle consultation »).
   final String nom;
+
   /// Ligne d'identité (ID · âge · sexe).
   final String corps;
+
   /// Contexte de consultation (ex : « Évaluation initiale »).
   final String contexte;
   final String graviteLabel;
@@ -56,8 +58,18 @@ class TetanusEvaluationHero extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  initials ?? (nom.split(' ').where((e) => e.isNotEmpty).take(2).map((e) => e[0]).join()),
-                  style: GoogleFonts.cairo(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
+                  initials ??
+                      (nom
+                          .split(' ')
+                          .where((e) => e.isNotEmpty)
+                          .take(2)
+                          .map((e) => e[0])
+                          .join()),
+                  style: GoogleFonts.cairo(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -67,12 +79,20 @@ class TetanusEvaluationHero extends StatelessWidget {
                   children: [
                     Text(
                       nom,
-                      style: GoogleFonts.cairo(fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.2),
+                      style: GoogleFonts.cairo(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       corps,
-                      style: GoogleFonts.cairo(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.8)),
+                      style: GoogleFonts.cairo(
+                        fontSize: 12.5,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
                     ),
                   ],
                 ),
@@ -82,12 +102,20 @@ class TetanusEvaluationHero extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              Icon(Icons.local_hospital_outlined, size: 14, color: Colors.white.withValues(alpha: 0.85)),
+              Icon(
+                Icons.local_hospital_outlined,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   contexte,
-                  style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85)),
+                  style: GoogleFonts.cairo(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
                 ),
               ),
             ],

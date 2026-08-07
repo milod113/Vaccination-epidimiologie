@@ -19,24 +19,46 @@ class TetanusDecisionCard extends StatelessWidget {
   (Color, IconData, String) get _style {
     switch (resolution.decision) {
       case TetanusDecision.simpleSurveillance:
-        return (EpidemiologyTheme.success, Icons.check_circle_rounded, 'Aucun acte nécessaire');
+        return (
+          EpidemiologyTheme.success,
+          Icons.check_circle_rounded,
+          'Aucun acte nécessaire',
+        );
       case TetanusDecision.rappelIndique:
-        return (EpidemiologyTheme.warning, Icons.vaccines_rounded, 'Rappel VAT à planifier');
+        return (
+          EpidemiologyTheme.warning,
+          Icons.vaccines_rounded,
+          'Rappel VAT à planifier',
+        );
       case TetanusDecision.vaccinationComplete:
-        return (EpidemiologyTheme.info, Icons.medication_rounded, 'Schéma VAT à initier');
+        return (
+          EpidemiologyTheme.info,
+          Icons.medication_rounded,
+          'Schéma VAT à initier',
+        );
       case TetanusDecision.vaccinationEtIg:
-        return (EpidemiologyTheme.danger, Icons.warning_amber_rounded, 'Acte en urgence');
+        return (
+          EpidemiologyTheme.danger,
+          Icons.warning_amber_rounded,
+          'Acte en urgence',
+        );
       case TetanusDecision.avisSpecialise:
-        return (EpidemiologyTheme.orange, Icons.local_hospital_rounded, 'Avis spécialisé requis');
+        return (
+          EpidemiologyTheme.orange,
+          Icons.local_hospital_rounded,
+          'Avis spécialisé requis',
+        );
     }
   }
 
-  bool get _igRequises => resolution.decision == TetanusDecision.vaccinationEtIg;
+  bool get _igRequises =>
+      resolution.decision == TetanusDecision.vaccinationEtIg;
   bool get _vaccinNecessaire =>
       resolution.decision == TetanusDecision.vaccinationComplete ||
       resolution.decision == TetanusDecision.vaccinationEtIg ||
       resolution.decision == TetanusDecision.rappelIndique;
-  bool get _rappelsIndique => resolution.decision == TetanusDecision.rappelIndique;
+  bool get _rappelsIndique =>
+      resolution.decision == TetanusDecision.rappelIndique;
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +89,7 @@ class TetanusDecisionCard extends StatelessWidget {
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      color,
-                      color.withValues(alpha: 0.78),
-                    ],
+                    colors: [color, color.withValues(alpha: 0.78)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -131,7 +150,11 @@ class TetanusDecisionCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.medical_information_outlined, size: 16, color: color),
+                Icon(
+                  Icons.medical_information_outlined,
+                  size: 16,
+                  color: color,
+                ),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
@@ -156,8 +179,7 @@ class TetanusDecisionCard extends StatelessWidget {
               _pill(_igRequises, Icons.bloodtype_outlined, 'Immunoglobulines'),
               _pill(_rappelsIndique, Icons.event_repeat_outlined, 'Rappel'),
               if (input.traitementDejaRecu)
-                _pill(true, Icons.done_all_rounded,
-                    'Traitement déjà reçu'),
+                _pill(true, Icons.done_all_rounded, 'Traitement déjà reçu'),
             ],
           ),
         ],

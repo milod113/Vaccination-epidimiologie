@@ -61,9 +61,9 @@ class TetanusCaseEmptyState extends StatelessWidget {
           Text(
             hasActiveFilters
                 ? 'Aucun dossier ne correspond à la recherche ou aux filtres '
-                    'appliqués. Réinitialisez pour élargir les résultats.'
+                      'appliqués. Réinitialisez pour élargir les résultats.'
                 : 'Réalisez une première évaluation post-exposition pour démarrer '
-                    'la prise en charge prophylactique antitétanique.',
+                      'la prise en charge prophylactique antitétanique.',
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -81,13 +81,19 @@ class TetanusCaseEmptyState extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: EpidemiologyTheme.redPrimary,
                 side: BorderSide(
-                    color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.4)),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.4),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                textStyle:
-                    GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -100,12 +106,17 @@ class TetanusCaseEmptyState extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: EpidemiologyTheme.redPrimary,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                textStyle:
-                    GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],

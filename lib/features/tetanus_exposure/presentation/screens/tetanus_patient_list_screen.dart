@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
 import '../../domain/repositories/tetanus_repository.dart';
@@ -55,8 +55,7 @@ class _TetanusPatientListScreenState extends State<TetanusPatientListScreen> {
   }
 
   int get _totalPatients => _patients?.length ?? 0;
-  int get _urgentCount =>
-      _patients?.where((p) => p.estUrgent).length ?? 0;
+  int get _urgentCount => _patients?.where((p) => p.estUrgent).length ?? 0;
 
   bool get _hasActiveFilters =>
       _status != TetanusCaseStatusFilter.tout ||
@@ -82,7 +81,8 @@ class _TetanusPatientListScreenState extends State<TetanusPatientListScreen> {
 
     final matches = source.where((p) {
       if (q.isNotEmpty) {
-        final hit = p.nomComplet.toLowerCase().contains(q) ||
+        final hit =
+            p.nomComplet.toLowerCase().contains(q) ||
             p.id.toLowerCase().contains(q) ||
             p.localisation.toLowerCase().contains(q) ||
             p.decision.label.toLowerCase().contains(q) ||
@@ -210,8 +210,8 @@ class _TetanusPatientListScreenState extends State<TetanusPatientListScreen> {
             final cols = constraints.maxWidth >= 1100
                 ? 3
                 : constraints.maxWidth >= 620
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             final gap = 14.0;
             final cardWidth = (constraints.maxWidth - gap * (cols - 1)) / cols;
 
@@ -268,10 +268,7 @@ class _AnimatedCaseItemState extends State<_AnimatedCaseItem>
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     Future.delayed(Duration(milliseconds: widget.index * 50), () {
       if (mounted) _controller.forward();
     });
@@ -287,10 +284,7 @@ class _AnimatedCaseItemState extends State<_AnimatedCaseItem>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnim,
-      child: SlideTransition(
-        position: _slideAnim,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _slideAnim, child: widget.child),
     );
   }
 }

@@ -35,7 +35,10 @@ class TetanusRiskCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withValues(alpha: 0.10), color.withValues(alpha: 0.03)],
+          colors: [
+            color.withValues(alpha: 0.10),
+            color.withValues(alpha: 0.03),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -130,15 +133,14 @@ class TetanusRiskCard extends StatelessWidget {
                 input.typePlaie == TetanusWoundType.tetanigene
                     ? EpidemiologyTheme.danger
                     : input.typePlaie == TetanusWoundType.aRisque
-                        ? EpidemiologyTheme.warning
-                        : EpidemiologyTheme.success,
+                    ? EpidemiologyTheme.warning
+                    : EpidemiologyTheme.success,
               ),
               if (input.corpsEtranger)
                 _factorChip(Icons.casino_outlined, 'Corps étranger', color),
               if (input.profond)
                 _factorChip(Icons.arrow_downward, 'Profonde', color),
-              if (input.souillee)
-                _factorChip(Icons.grass, 'Souillée', color),
+              if (input.souillee) _factorChip(Icons.grass, 'Souillée', color),
             ],
           ),
         ],

@@ -12,11 +12,7 @@ class TetanusCaseCard extends StatelessWidget {
   final TetanusPatientModel patient;
   final VoidCallback? onTap;
 
-  const TetanusCaseCard({
-    super.key,
-    required this.patient,
-    this.onTap,
-  });
+  const TetanusCaseCard({super.key, required this.patient, this.onTap});
 
   Color get _accent {
     if (patient.estUrgent) return EpidemiologyTheme.danger;
@@ -93,7 +89,9 @@ class TetanusCaseCard extends StatelessWidget {
                           if (onTap != null) ...[
                             const SizedBox(height: 12),
                             const Divider(
-                                height: 1, color: EpidemiologyTheme.warm100),
+                              height: 1,
+                              color: EpidemiologyTheme.warm100,
+                            ),
                             const SizedBox(height: 10),
                             _footer(),
                           ],
@@ -135,7 +133,9 @@ class TetanusCaseCard extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: EpidemiologyTheme.warm100,
                       borderRadius: BorderRadius.circular(6),
@@ -220,8 +220,8 @@ class TetanusCaseCard extends StatelessWidget {
           patient.plaieTetaniegene
               ? EpidemiologyTheme.danger
               : patient.typePlaie == TetanusWoundType.aRisque
-                  ? EpidemiologyTheme.warning
-                  : EpidemiologyTheme.success,
+              ? EpidemiologyTheme.warning
+              : EpidemiologyTheme.success,
         ),
         _chip(
           patient.decisionIcon,
@@ -232,14 +232,21 @@ class TetanusCaseCard extends StatelessWidget {
         if (patient.immunoglobulines)
           _chip(Icons.bloodtype_outlined, 'Ig', EpidemiologyTheme.indigo),
         if (patient.corpsEtranger)
-          _chip(Icons.casino_outlined, 'Corps étranger',
-              EpidemiologyTheme.orange),
+          _chip(
+            Icons.casino_outlined,
+            'Corps étranger',
+            EpidemiologyTheme.orange,
+          ),
       ],
     );
   }
 
-  Widget _chip(IconData icon, String label, Color color,
-      {bool showIcon = true}) {
+  Widget _chip(
+    IconData icon,
+    String label,
+    Color color, {
+    bool showIcon = true,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -408,8 +415,11 @@ class TetanusCaseCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              size: 12, color: Colors.white),
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 12,
+            color: Colors.white,
+          ),
           const SizedBox(width: 4),
           Text(
             'URGENT',
@@ -440,8 +450,11 @@ class TetanusCaseCard extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          const Icon(Icons.arrow_forward,
-              size: 15, color: EpidemiologyTheme.redPrimary),
+          const Icon(
+            Icons.arrow_forward,
+            size: 15,
+            color: EpidemiologyTheme.redPrimary,
+          ),
         ],
       ),
     );

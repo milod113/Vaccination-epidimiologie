@@ -1,4 +1,4 @@
-﻿import '../../data/models/tetanus_models.dart';
+import '../../data/models/tetanus_models.dart';
 
 /// Niveau de risque tétanique estimé à partir de l'étude de la plaie et du
 /// contexte d'exposition.
@@ -105,12 +105,10 @@ class TetanusEvaluationService {
     final base = _highRisk(i)
         ? TetanusRiskLevel.eleve
         : _mediumRisk(i)
-            ? TetanusRiskLevel.moyen
-            : TetanusRiskLevel.faible;
+        ? TetanusRiskLevel.moyen
+        : TetanusRiskLevel.faible;
     if (i.immunodeprime && base != TetanusRiskLevel.eleve) {
-      return base == TetanusRiskLevel.moyen
-          ? TetanusRiskLevel.eleve
-          : base;
+      return base == TetanusRiskLevel.moyen ? TetanusRiskLevel.eleve : base;
     }
     return base;
   }
@@ -124,7 +122,8 @@ class TetanusEvaluationService {
       return TetanusDecisionResolution(
         risk: risk,
         decision: TetanusDecision.avisSpecialise,
-        recommandation: 'Contexte à risque élevé chez un patient immunodéprimé. '
+        recommandation:
+            'Contexte à risque élevé chez un patient immunodéprimé. '
             'Un avis médical spécialisé est requis avant toute décision prophylactique.',
       );
     }
@@ -133,7 +132,8 @@ class TetanusEvaluationService {
       return TetanusDecisionResolution(
         risk: risk,
         decision: TetanusDecision.avisSpecialise,
-        recommandation: 'Allergie connue à l\'anatoxine tétanique. '
+        recommandation:
+            'Allergie connue à l\'anatoxine tétanique. '
             'Avis spécialisé indispensable avant administration.',
       );
     }
@@ -144,14 +144,16 @@ class TetanusEvaluationService {
           return TetanusDecisionResolution(
             risk: risk,
             decision: TetanusDecision.rappelIndique,
-            recommandation: 'Plaie tétanigène : un rappel VAT est recommandé si la dernière dose '
+            recommandation:
+                'Plaie tétanigène : un rappel VAT est recommandé si la dernière dose '
                 'remonte à plus de 5 ans. Aucune immunoglobuline nécessaire si vaccination à jour.',
           );
         }
         return TetanusDecisionResolution(
           risk: risk,
           decision: TetanusDecision.vaccinationEtIg,
-          recommandation: 'Plaie à haut risque et vaccination incomplète/inconnue : '
+          recommandation:
+              'Plaie à haut risque et vaccination incomplète/inconnue : '
               'vaccination VAT ET immunoglobulines antitétaniques à administrer sans délai.',
         );
       case TetanusRiskLevel.moyen:
@@ -159,14 +161,16 @@ class TetanusEvaluationService {
           return TetanusDecisionResolution(
             risk: risk,
             decision: TetanusDecision.simpleSurveillance,
-            recommandation: 'Vaccination à jour pour une plaie modérée : simple surveillance, '
+            recommandation:
+                'Vaccination à jour pour une plaie modérée : simple surveillance, '
                 'aucun acte prophylactique nécessaire.',
           );
         }
         return TetanusDecisionResolution(
           risk: risk,
           decision: TetanusDecision.vaccinationComplete,
-          recommandation: 'Plaie modérée et vaccination non à jour : initier ou compléter '
+          recommandation:
+              'Plaie modérée et vaccination non à jour : initier ou compléter '
               'le schéma vaccinal VAT.',
         );
       case TetanusRiskLevel.faible:
@@ -174,14 +178,16 @@ class TetanusEvaluationService {
           return TetanusDecisionResolution(
             risk: risk,
             decision: TetanusDecision.simpleSurveillance,
-            recommandation: 'Exposition propre avec vaccination à jour. Simple surveillance, '
+            recommandation:
+                'Exposition propre avec vaccination à jour. Simple surveillance, '
                 'aucun acte nécessaire.',
           );
         }
         return TetanusDecisionResolution(
           risk: risk,
           decision: TetanusDecision.vaccinationComplete,
-          recommandation: 'Vaccination à compléter (schéma VAT) même en l\'absence de risque élevé.',
+          recommandation:
+              'Vaccination à compléter (schéma VAT) même en l\'absence de risque élevé.',
         );
     }
   }

@@ -68,8 +68,11 @@ class TetanusCaseSearchBar extends StatelessWidget {
             suffixIcon: hasQuery
                 ? IconButton(
                     tooltip: 'Effacer',
-                    icon: const Icon(Icons.cancel,
-                        color: EpidemiologyTheme.warm400, size: 18),
+                    icon: const Icon(
+                      Icons.cancel,
+                      color: EpidemiologyTheme.warm400,
+                      size: 18,
+                    ),
                     onPressed: () {
                       controller.clear();
                       onChanged('');
@@ -81,7 +84,9 @@ class TetanusCaseSearchBar extends StatelessWidget {
             filled: true,
             fillColor: Colors.transparent,
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 14),
+              horizontal: 14,
+              vertical: 14,
+            ),
           ),
         ),
       ),

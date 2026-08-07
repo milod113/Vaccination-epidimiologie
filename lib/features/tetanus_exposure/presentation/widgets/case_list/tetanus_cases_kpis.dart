@@ -52,46 +52,52 @@ class TetanusCasesKpis extends StatelessWidget {
             label: 'En cours',
             value: '$enCours',
             icon: Icons.sync,
-            color: enCours > 0 ? EpidemiologyTheme.teal : EpidemiologyTheme.slate400,
+            color: enCours > 0
+                ? EpidemiologyTheme.teal
+                : EpidemiologyTheme.slate400,
             width: tileWidth,
           ),
           _KpiTile(
             label: 'Urgents',
             value: '$urgents',
             icon: Icons.warning_amber_rounded,
-            color: urgents > 0 ? EpidemiologyTheme.danger : EpidemiologyTheme.slate400,
+            color: urgents > 0
+                ? EpidemiologyTheme.danger
+                : EpidemiologyTheme.slate400,
             width: tileWidth,
           ),
           _KpiTile(
             label: 'Vaccin requis',
             value: '$vaccinRequis',
             icon: Icons.vaccines_outlined,
-            color: vaccinRequis > 0 ? EpidemiologyTheme.warning : EpidemiologyTheme.slate400,
+            color: vaccinRequis > 0
+                ? EpidemiologyTheme.warning
+                : EpidemiologyTheme.slate400,
             width: tileWidth,
           ),
           _KpiTile(
             label: 'Ig requises',
             value: '$ig',
             icon: Icons.bloodtype_outlined,
-            color: ig > 0 ? EpidemiologyTheme.indigo : EpidemiologyTheme.slate400,
+            color: ig > 0
+                ? EpidemiologyTheme.indigo
+                : EpidemiologyTheme.slate400,
             width: tileWidth,
           ),
           _KpiTile(
             label: 'Suivi clos',
             value: '$clos',
             icon: Icons.check_circle_outline,
-            color: clos > 0 ? EpidemiologyTheme.success : EpidemiologyTheme.slate400,
+            color: clos > 0
+                ? EpidemiologyTheme.success
+                : EpidemiologyTheme.slate400,
             width: tileWidth,
           ),
         ];
 
         return Container(
           margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          child: Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            children: kpis,
-          ),
+          child: Wrap(spacing: gap, runSpacing: gap, children: kpis),
         );
       },
     );

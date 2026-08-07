@@ -22,17 +22,17 @@ class TetanusCaseDetailHero extends StatelessWidget {
   });
 
   Color get _riskColor => switch (risk) {
-        TetanusRiskLevel.faible => EpidemiologyTheme.success,
-        TetanusRiskLevel.moyen => EpidemiologyTheme.warning,
-        TetanusRiskLevel.eleve => EpidemiologyTheme.danger,
-      };
+    TetanusRiskLevel.faible => EpidemiologyTheme.success,
+    TetanusRiskLevel.moyen => EpidemiologyTheme.warning,
+    TetanusRiskLevel.eleve => EpidemiologyTheme.danger,
+  };
 
   Color get _dossierColor => switch (patient.statutDossier) {
-        TetanusDossierStatut.enCours => EpidemiologyTheme.info,
-        TetanusDossierStatut.acteEffectue => EpidemiologyTheme.teal,
-        TetanusDossierStatut.suiviClos => EpidemiologyTheme.success,
-        TetanusDossierStatut.perduDeVue => EpidemiologyTheme.warm400,
-      };
+    TetanusDossierStatut.enCours => EpidemiologyTheme.info,
+    TetanusDossierStatut.acteEffectue => EpidemiologyTheme.teal,
+    TetanusDossierStatut.suiviClos => EpidemiologyTheme.success,
+    TetanusDossierStatut.perduDeVue => EpidemiologyTheme.warm400,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +55,7 @@ class TetanusCaseDetailHero extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (onBack != null) ...[
-                _backButton(),
-                const SizedBox(width: 10),
-              ],
+              if (onBack != null) ...[_backButton(), const SizedBox(width: 10)],
               Container(
                 width: 54,
                 height: 54,
@@ -74,9 +71,10 @@ class TetanusCaseDetailHero extends StatelessWidget {
                 child: Text(
                   initiales,
                   style: GoogleFonts.cairo(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -108,7 +106,9 @@ class TetanusCaseDetailHero extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.only(left: 8),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 7),
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: EpidemiologyTheme.danger,
                     borderRadius: BorderRadius.circular(14),
@@ -123,8 +123,11 @@ class TetanusCaseDetailHero extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          size: 14, color: Colors.white),
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         'URGENT',
@@ -143,8 +146,11 @@ class TetanusCaseDetailHero extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              Icon(Icons.event_outlined,
-                  size: 14, color: Colors.white.withValues(alpha: 0.85)),
+              Icon(
+                Icons.event_outlined,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(

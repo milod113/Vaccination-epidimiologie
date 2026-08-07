@@ -28,7 +28,8 @@ class TetanusCaseFilterBar extends StatelessWidget {
     required this.onReset,
   });
 
-  bool get _hasActive => status != TetanusCaseStatusFilter.tout || quick != null;
+  bool get _hasActive =>
+      status != TetanusCaseStatusFilter.tout || quick != null;
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +47,11 @@ class TetanusCaseFilterBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.tune,
-                  size: 15, color: EpidemiologyTheme.warm400),
+              const Icon(
+                Icons.tune,
+                size: 15,
+                color: EpidemiologyTheme.warm400,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Filtres',
@@ -66,7 +70,9 @@ class TetanusCaseFilterBar extends StatelessWidget {
                   onTap: onReset,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: EpidemiologyTheme.warm50,
                       borderRadius: BorderRadius.circular(9),
@@ -75,8 +81,11 @@ class TetanusCaseFilterBar extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.refresh,
-                            size: 13, color: EpidemiologyTheme.warm500),
+                        const Icon(
+                          Icons.refresh,
+                          size: 13,
+                          color: EpidemiologyTheme.warm500,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Réinitialiser',
@@ -106,8 +115,11 @@ class TetanusCaseFilterBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.people_outline,
-                        size: 15, color: EpidemiologyTheme.redPrimary),
+                    const Icon(
+                      Icons.people_outline,
+                      size: 15,
+                      color: EpidemiologyTheme.redPrimary,
+                    ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -201,8 +213,11 @@ class TetanusCaseFilterBar extends StatelessWidget {
                   color: selected ? Colors.white : color,
                 ),
               ),
-              avatar: Icon(f.icon,
-                  size: 14, color: selected ? Colors.white : color),
+              avatar: Icon(
+                f.icon,
+                size: 14,
+                color: selected ? Colors.white : color,
+              ),
               selected: selected,
               showCheckmark: false,
               selectedColor: color,
@@ -226,32 +241,33 @@ class TetanusCaseFilterBar extends StatelessWidget {
       color: EpidemiologyTheme.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       itemBuilder: (context) => TetanusCaseSortOption.values
-          .map((o) => PopupMenuItem(
-                value: o,
-                child: Row(
-                  children: [
-                    Icon(
-                      _sortIcon(o),
-                      size: 16,
+          .map(
+            (o) => PopupMenuItem(
+              value: o,
+              child: Row(
+                children: [
+                  Icon(
+                    _sortIcon(o),
+                    size: 16,
+                    color: o == sort
+                        ? EpidemiologyTheme.redPrimary
+                        : EpidemiologyTheme.warm400,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    o.label,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: o == sort ? FontWeight.w700 : FontWeight.w500,
                       color: o == sort
                           ? EpidemiologyTheme.redPrimary
-                          : EpidemiologyTheme.warm400,
+                          : EpidemiologyTheme.slate700,
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      o.label,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight:
-                            o == sort ? FontWeight.w700 : FontWeight.w500,
-                        color: o == sort
-                            ? EpidemiologyTheme.redPrimary
-                            : EpidemiologyTheme.slate700,
-                      ),
-                    ),
-                  ],
-                ),
-              ))
+                  ),
+                ],
+              ),
+            ),
+          )
           .toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -263,8 +279,11 @@ class TetanusCaseFilterBar extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.swap_vert,
-                size: 14, color: EpidemiologyTheme.warm500),
+            const Icon(
+              Icons.swap_vert,
+              size: 14,
+              color: EpidemiologyTheme.warm500,
+            ),
             const SizedBox(width: 4),
             Text(
               'Trier',
@@ -281,9 +300,9 @@ class TetanusCaseFilterBar extends StatelessWidget {
   }
 
   IconData _sortIcon(TetanusCaseSortOption o) => switch (o) {
-        TetanusCaseSortOption.urgent => Icons.local_fire_department_outlined,
-        TetanusCaseSortOption.recent => Icons.access_time_filled,
-        TetanusCaseSortOption.decision => Icons.medical_information_outlined,
-        TetanusCaseSortOption.nom => Icons.sort_by_alpha,
-      };
+    TetanusCaseSortOption.urgent => Icons.local_fire_department_outlined,
+    TetanusCaseSortOption.recent => Icons.access_time_filled,
+    TetanusCaseSortOption.decision => Icons.medical_information_outlined,
+    TetanusCaseSortOption.nom => Icons.sort_by_alpha,
+  };
 }

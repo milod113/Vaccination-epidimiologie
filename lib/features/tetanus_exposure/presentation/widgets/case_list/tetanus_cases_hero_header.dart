@@ -35,21 +35,22 @@ class TetanusCasesHeroHeader extends StatelessWidget {
           final narrow = constraints.maxWidth < 460;
           final titleBlock = Row(
             children: [
-              if (onBack != null) ...[
-                _backButton(),
-                const SizedBox(width: 10),
-              ],
+              if (onBack != null) ...[_backButton(), const SizedBox(width: 10)],
               Container(
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(16),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
                 ),
-                child: const Icon(Icons.healing_outlined,
-                    size: 26, color: Colors.white),
+                child: const Icon(
+                  Icons.healing_outlined,
+                  size: 26,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -88,8 +89,11 @@ class TetanusCasesHeroHeader extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _statChip(Icons.people_alt_outlined, '$totalCount dossiers',
-                  Colors.white),
+              _statChip(
+                Icons.people_alt_outlined,
+                '$totalCount dossiers',
+                Colors.white,
+              ),
               if (urgentCount > 0)
                 _statChip(
                   Icons.warning_amber_rounded,
@@ -125,8 +129,7 @@ class TetanusCasesHeroHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: const Padding(
           padding: EdgeInsets.all(8),
-          child: Icon(Icons.arrow_back_rounded,
-              size: 20, color: Colors.white),
+          child: Icon(Icons.arrow_back_rounded, size: 20, color: Colors.white),
         ),
       ),
     );

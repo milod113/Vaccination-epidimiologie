@@ -15,8 +15,8 @@ class TetanusCaseSkeleton extends StatelessWidget {
         final cols = constraints.maxWidth >= 1100
             ? 3
             : constraints.maxWidth >= 620
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         final gap = 14.0;
         final width = (constraints.maxWidth - gap * (cols - 1)) / cols;
 
@@ -24,8 +24,7 @@ class TetanusCaseSkeleton extends StatelessWidget {
           spacing: gap,
           runSpacing: gap,
           children: [
-            for (var i = 0; i < 6; i++)
-              _card(width: width, tall: cols > 1),
+            for (var i = 0; i < 6; i++) _card(width: width, tall: cols > 1),
           ],
         );
       },
@@ -75,15 +74,16 @@ class TetanusCaseSkeleton extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           const Divider(
-              height: 1, thickness: 1, color: EpidemiologyTheme.warm100),
+            height: 1,
+            thickness: 1,
+            color: EpidemiologyTheme.warm100,
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
               EpidemiologyTheme.shimmerBox(width: 26, height: 14, radius: 6),
               const SizedBox(width: 10),
-              Expanded(
-                child: EpidemiologyTheme.shimmerBox(height: 12),
-              ),
+              Expanded(child: EpidemiologyTheme.shimmerBox(height: 12)),
             ],
           ),
           const SizedBox(height: 8),
@@ -91,9 +91,7 @@ class TetanusCaseSkeleton extends StatelessWidget {
             children: [
               EpidemiologyTheme.shimmerBox(width: 26, height: 14, radius: 6),
               const SizedBox(width: 10),
-              Expanded(
-                child: EpidemiologyTheme.shimmerBox(height: 12),
-              ),
+              Expanded(child: EpidemiologyTheme.shimmerBox(height: 12)),
             ],
           ),
         ],

@@ -10,22 +10,31 @@ import '../widgets/tetanus_evaluation_controls.dart';
 import '../widgets/tetanus_risk_card.dart';
 import '../widgets/tetanus_decision_card.dart';
 import '../widgets/case_detail/tetanus_case_detail_hero.dart';
+import 'tetanus_act_form_screen.dart';
 
 /// Détail d'un cas tétanique pris en charge.
 ///
 /// Synthèse clinique premium : héros du cas, alerte éventuelle, niveau de
 /// risque, décision médicale, profil patient, plaie/contexte, statut
 /// vaccinal, suivi/chronologie des actes et traçabilité.
-class TetanusPatientDetailScreen extends StatelessWidget {
+class TetanusPatientDetailScreen extends StatefulWidget {
   final String patientId;
   const TetanusPatientDetailScreen({super.key, required this.patientId});
 
+  @override
+  State<TetanusPatientDetailScreen> createState() =>
+      _TetanusPatientDetailScreenState();
+}
+
+class _TetanusPatientDetailScreenState
+    extends State<TetanusPatientDetailScreen> {
   static const _service = TetanusEvaluationService();
 
   @override
   Widget build(BuildContext context) {
-    final patient =
-        GetIt.instance<TetanusRepository>().getPatientById(patientId);
+    final patient = GetIt.instance<TetanusRepository>().getPatientById(
+      widget.patientId,
+    );
     if (patient == null) {
       return Scaffold(
         backgroundColor: EpidemiologyTheme.warm50,
@@ -56,10 +65,7 @@ class TetanusPatientDetailScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                child: TetanusRiskCard(
-                  input: input,
-                  resolution: resolution,
-                ),
+                child: TetanusRiskCard(input: input, resolution: resolution),
               ),
             ),
             SliverToBoxAdapter(
@@ -118,31 +124,40 @@ class TetanusPatientDetailScreen extends StatelessWidget {
   Widget _buildAlerts(TetanusPatientModel p) {
     final alerts = <Widget>[];
     if (p.estUrgent) {
-      alerts.add(TetanusAlertItem(
-        icon: Icons.warning_amber_rounded,
-        title: 'Prise en charge urgente requise',
-        message: 'VAT + immunoglobulines antitétaniques à administrer sans '
-            'délai selon l\'évaluation du risque.',
-        color: EpidemiologyTheme.danger,
-      ));
+      alerts.add(
+        TetanusAlertItem(
+          icon: Icons.warning_amber_rounded,
+          title: 'Prise en charge urgente requise',
+          message:
+              'VAT + immunoglobulines antitétaniques à administrer sans '
+              'délai selon l\'évaluation du risque.',
+          color: EpidemiologyTheme.danger,
+        ),
+      );
     }
     if (p.necessiteIg) {
-      alerts.add(TetanusAlertItem(
-        icon: Icons.bloodtype_outlined,
-        title: 'Immunoglobulines indiquées',
-        message: 'Plaie tétanigène avec statut vaccinal non à jour : '
-            'l\'administration d\'Ig antitétaniques est recommandée.',
-        color: EpidemiologyTheme.indigo,
-      ));
+      alerts.add(
+        TetanusAlertItem(
+          icon: Icons.bloodtype_outlined,
+          title: 'Immunoglobulines indiquées',
+          message:
+              'Plaie tétanigène avec statut vaccinal non à jour : '
+              'l\'administration d\'Ig antitétaniques est recommandée.',
+          color: EpidemiologyTheme.indigo,
+        ),
+      );
     }
     if (p.statutDossier == TetanusDossierStatut.perduDeVue) {
-      alerts.add(TetanusAlertItem(
-        icon: Icons.visibility_off_outlined,
-        title: 'Patient perdu de vue',
-        message: 'Le suivi du patient a été interrompu. Relancer le contact '
-            'et reprendre la prise en charge.',
-        color: EpidemiologyTheme.warm500,
-      ));
+      alerts.add(
+        TetanusAlertItem(
+          icon: Icons.visibility_off_outlined,
+          title: 'Patient perdu de vue',
+          message:
+              'Le suivi du patient a été interrompu. Relancer le contact '
+              'et reprendre la prise en charge.',
+          color: EpidemiologyTheme.warm500,
+        ),
+      );
     }
     if (alerts.isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -162,18 +177,26 @@ class TetanusPatientDetailScreen extends StatelessWidget {
       child: Column(
         children: [
           TetanusInfoRow(
-              label: 'Dossier', value: p.id, icon: Icons.folder_outlined),
+            label: 'Dossier',
+            value: p.id,
+            icon: Icons.folder_outlined,
+          ),
           TetanusInfoRow(
-              label: 'Âge', value: '${p.age} ans', icon: Icons.cake_outlined),
+            label: 'Âge',
+            value: '${p.age} ans',
+            icon: Icons.cake_outlined,
+          ),
           TetanusInfoRow(label: 'Sexe', value: p.sexe, icon: Icons.wc),
           TetanusInfoRow(
-              label: 'Date de blessure',
-              value: p.dateBlessure,
-              icon: Icons.event_outlined),
+            label: 'Date de blessure',
+            value: p.dateBlessure,
+            icon: Icons.event_outlined,
+          ),
           TetanusInfoRow(
-              label: 'Date de création',
-              value: p.dateCreation,
-              icon: Icons.edit_calendar_outlined),
+            label: 'Date de création',
+            value: p.dateCreation,
+            icon: Icons.edit_calendar_outlined,
+          ),
         ],
       ),
     );
@@ -190,26 +213,45 @@ class TetanusPatientDetailScreen extends StatelessWidget {
       child: Column(
         children: [
           TetanusInfoRow(
-              label: 'Type',
-              value: p.typePlaie.label,
-              icon: Icons.crisis_alert_outlined),
+            label: 'Type',
+            value: p.typePlaie.label,
+            icon: Icons.crisis_alert_outlined,
+          ),
           TetanusInfoRow(
-              label: 'Localisation',
-              value: p.localisation,
-              icon: Icons.my_location_outlined),
+            label: 'Localisation',
+            value: p.localisation,
+            icon: Icons.my_location_outlined,
+          ),
           TetanusInfoRow(
-              label: 'Délai de consultation',
-              value: p.delaiConsultation,
-              icon: Icons.schedule),
+            label: 'Délai de consultation',
+            value: p.delaiConsultation,
+            icon: Icons.schedule,
+          ),
           _boolsInfo([
-            _boolCell('Profonde', p.plaieProfonde, Icons.arrow_downward,
-                EpidemiologyTheme.info),
-            _boolCell('Souillée', p.plaieSouillee, Icons.grass,
-                EpidemiologyTheme.orange),
-            _boolCell('Corps étranger', p.corpsEtranger,
-                Icons.casino_outlined, EpidemiologyTheme.indigo),
-            _boolCell('Soins locaux', p.soinsLocauxRealises,
-                Icons.medical_services_outlined, EpidemiologyTheme.success),
+            _boolCell(
+              'Profonde',
+              p.plaieProfonde,
+              Icons.arrow_downward,
+              EpidemiologyTheme.info,
+            ),
+            _boolCell(
+              'Souillée',
+              p.plaieSouillee,
+              Icons.grass,
+              EpidemiologyTheme.orange,
+            ),
+            _boolCell(
+              'Corps étranger',
+              p.corpsEtranger,
+              Icons.casino_outlined,
+              EpidemiologyTheme.indigo,
+            ),
+            _boolCell(
+              'Soins locaux',
+              p.soinsLocauxRealises,
+              Icons.medical_services_outlined,
+              EpidemiologyTheme.success,
+            ),
           ]),
         ],
       ),
@@ -239,11 +281,7 @@ class TetanusPatientDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: cells,
-          ),
+          Wrap(spacing: 8, runSpacing: 8, children: cells),
         ],
       ),
     );
@@ -297,14 +335,16 @@ class TetanusPatientDetailScreen extends StatelessWidget {
       child: Column(
         children: [
           TetanusInfoRow(
-              label: 'Statut',
-              value: p.statutVaccinal.label,
-              icon: Icons.shield_outlined),
+            label: 'Statut',
+            value: p.statutVaccinal.label,
+            icon: Icons.shield_outlined,
+          ),
           if (p.nombreDosesConnues != null)
             TetanusInfoRow(
-                label: 'Doses documentées',
-                value: '${p.nombreDosesConnues}',
-                icon: Icons.onetwothree_outlined),
+              label: 'Doses documentées',
+              value: '${p.nombreDosesConnues}',
+              icon: Icons.onetwothree_outlined,
+            ),
           _boolCell(
             'Recherche de carnet',
             p.nombreDosesConnues == null,
@@ -352,8 +392,11 @@ class TetanusPatientDetailScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline,
-              size: 16, color: EpidemiologyTheme.warm300),
+          const Icon(
+            Icons.info_outline,
+            size: 16,
+            color: EpidemiologyTheme.warm300,
+          ),
           const SizedBox(width: 8),
           Text(
             'Aucun acte prophylactique enregistré pour ce cas.',
@@ -383,7 +426,10 @@ class TetanusPatientDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: EpidemiologyTheme.warning,
                     shape: BoxShape.circle,
-                    border: Border.all(color: EpidemiologyTheme.white, width: 2),
+                    border: Border.all(
+                      color: EpidemiologyTheme.white,
+                      width: 2,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: EpidemiologyTheme.warning.withValues(alpha: 0.3),
@@ -427,7 +473,9 @@ class TetanusPatientDetailScreen extends StatelessWidget {
                       const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: EpidemiologyTheme.warm50,
                           borderRadius: BorderRadius.circular(8),
@@ -445,14 +493,16 @@ class TetanusPatientDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  if (acte.vaccin != null) _metaRow(Icons.vaccines_outlined, acte.vaccin!),
+                  if (acte.vaccin != null)
+                    _metaRow(Icons.vaccines_outlined, acte.vaccin!),
                   if (acte.numeroLot != null)
                     _metaRow(Icons.qr_code_outlined, 'Lot: ${acte.numeroLot}'),
                   if (acte.administrateur != null)
                     _metaRow(Icons.person_outline, acte.administrateur!),
                   if (acte.centre != null)
                     _metaRow(Icons.location_on_outlined, acte.centre!),
-                  if (acte.observations != null && acte.observations!.isNotEmpty) ...[
+                  if (acte.observations != null &&
+                      acte.observations!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Container(
                       width: double.infinity,
@@ -537,10 +587,18 @@ class TetanusPatientDetailScreen extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _pill(hasIg, Icons.bloodtype_outlined, 'Ig requises',
-                  EpidemiologyTheme.indigo),
-              _pill(p.historique.isNotEmpty, Icons.check_rounded,
-                  'Vaccination documentée', EpidemiologyTheme.info),
+              _pill(
+                hasIg,
+                Icons.bloodtype_outlined,
+                'Ig requises',
+                EpidemiologyTheme.indigo,
+              ),
+              _pill(
+                p.historique.isNotEmpty,
+                Icons.check_rounded,
+                'Vaccination documentée',
+                EpidemiologyTheme.info,
+              ),
             ],
           ),
         ],
@@ -553,7 +611,9 @@ class TetanusPatientDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? color.withValues(alpha: 0.10) : EpidemiologyTheme.warm50,
+        color: active
+            ? color.withValues(alpha: 0.10)
+            : EpidemiologyTheme.warm50,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: active
@@ -587,26 +647,31 @@ class TetanusPatientDetailScreen extends StatelessWidget {
       icon: const Icon(Icons.edit_outlined, size: 18),
       label: Text(
         'Modifier la décision',
-        style:
-            GoogleFonts.cairo(fontSize: 12.5, fontWeight: FontWeight.w700),
+        style: GoogleFonts.cairo(fontSize: 12.5, fontWeight: FontWeight.w700),
       ),
       style: OutlinedButton.styleFrom(
         foregroundColor: EpidemiologyTheme.redPrimary,
         side: BorderSide(
-            color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.3)),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14)),
+          color: EpidemiologyTheme.redPrimary.withValues(alpha: 0.3),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         padding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );
 
     final enregistrer = FilledButton.icon(
-      onPressed: () {},
+      onPressed: () async {
+        final ok = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => TetanusActFormScreen(patientId: p.id),
+          ),
+        );
+        if (ok == true && mounted) setState(() {});
+      },
       icon: const Icon(Icons.add_circle_outline, size: 18),
       label: Text(
         'Enregistrer un acte',
-        style:
-            GoogleFonts.cairo(fontSize: 12.5, fontWeight: FontWeight.w700),
+        style: GoogleFonts.cairo(fontSize: 12.5, fontWeight: FontWeight.w700),
       ),
       style: FilledButton.styleFrom(
         backgroundColor: EpidemiologyTheme.redPrimary,
@@ -622,10 +687,12 @@ class TetanusPatientDetailScreen extends StatelessWidget {
           return Column(
             children: [
               SizedBox(
-                  width: double.infinity, child: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: enregistrer,
-              )),
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: enregistrer,
+                ),
+              ),
               SizedBox(width: double.infinity, child: edit),
             ],
           );

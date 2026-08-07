@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/epidemiology_theme.dart';
 import '../../data/models/tetanus_models.dart';
@@ -46,22 +46,41 @@ class TetanusSummaryPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.summarize_rounded, size: 18, color: EpidemiologyTheme.redPrimary),
+              Icon(
+                Icons.summarize_rounded,
+                size: 18,
+                color: EpidemiologyTheme.redPrimary,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Synthèse clinique',
                 style: GoogleFonts.cairo(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: EpidemiologyTheme.warm900),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: EpidemiologyTheme.warm900,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _row('Niveau de risque', resolution.risk.label,
-              color: riskColor, icon: riskIcon),
-          _row('Statut vaccinal', input.statutVaccinal.label,
-              color: _vaccinColor(), icon: Icons.vaccines_outlined),
-          _row('Décision', resolution.decision.label,
-              color: decisionColor, icon: Icons.event_note_outlined),
+          _row(
+            'Niveau de risque',
+            resolution.risk.label,
+            color: riskColor,
+            icon: riskIcon,
+          ),
+          _row(
+            'Statut vaccinal',
+            input.statutVaccinal.label,
+            color: _vaccinColor(),
+            icon: Icons.vaccines_outlined,
+          ),
+          _row(
+            'Décision',
+            resolution.decision.label,
+            color: decisionColor,
+            icon: Icons.event_note_outlined,
+          ),
           const Divider(height: 24, color: EpidemiologyTheme.warm150),
           _prochaineAction(),
           const SizedBox(height: 14),
@@ -88,7 +107,8 @@ class TetanusSummaryPanel extends StatelessWidget {
     }
   }
 
-  Color _vaccinColor() {    switch (input.statutVaccinal) {
+  Color _vaccinColor() {
+    switch (input.statutVaccinal) {
       case TetanusVaccinStatus.aJour:
         return EpidemiologyTheme.success;
       case TetanusVaccinStatus.incomplet:
@@ -100,7 +120,12 @@ class TetanusSummaryPanel extends StatelessWidget {
     }
   }
 
-  Widget _row(String label, String value, {required Color color, IconData? icon}) {
+  Widget _row(
+    String label,
+    String value, {
+    required Color color,
+    IconData? icon,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -120,9 +145,22 @@ class TetanusSummaryPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.cairo(fontSize: 10.5, color: EpidemiologyTheme.warm400)),
+                Text(
+                  label,
+                  style: GoogleFonts.cairo(
+                    fontSize: 10.5,
+                    color: EpidemiologyTheme.warm400,
+                  ),
+                ),
                 const SizedBox(height: 1),
-                Text(value, style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
+                Text(
+                  value,
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
               ],
             ),
           ),
@@ -136,8 +174,8 @@ class TetanusSummaryPanel extends StatelessWidget {
     final color = isUrgent
         ? EpidemiologyTheme.danger
         : resolution.decision == TetanusDecision.simpleSurveillance
-            ? EpidemiologyTheme.success
-            : EpidemiologyTheme.info;
+        ? EpidemiologyTheme.success
+        : EpidemiologyTheme.info;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -149,11 +187,27 @@ class TetanusSummaryPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PROCHAINE ACTION',
-              style: GoogleFonts.cairo(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: color)),
+          Text(
+            'PROCHAINE ACTION',
+            style: GoogleFonts.cairo(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(isUrgent ? 'Administrer VAT + Ig sans délai.' : resolution.recommandation,
-              style: GoogleFonts.cairo(fontSize: 11.5, height: 1.4, fontWeight: FontWeight.w600, color: EpidemiologyTheme.warm800)),
+          Text(
+            isUrgent
+                ? 'Administrer VAT + Ig sans délai.'
+                : resolution.recommandation,
+            style: GoogleFonts.cairo(
+              fontSize: 11.5,
+              height: 1.4,
+              fontWeight: FontWeight.w600,
+              color: EpidemiologyTheme.warm800,
+            ),
+          ),
         ],
       ),
     );
@@ -163,18 +217,26 @@ class TetanusSummaryPanel extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          dossierPret ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+          dossierPret
+              ? Icons.check_circle_rounded
+              : Icons.error_outline_rounded,
           size: 16,
-          color: dossierPret ? EpidemiologyTheme.success : EpidemiologyTheme.warning,
+          color: dossierPret
+              ? EpidemiologyTheme.success
+              : EpidemiologyTheme.warning,
         ),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
-            dossierPret ? 'Dossier prêt à valider' : 'Dossier incomplet à compléter',
+            dossierPret
+                ? 'Dossier prêt à valider'
+                : 'Dossier incomplet à compléter',
             style: GoogleFonts.cairo(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: dossierPret ? EpidemiologyTheme.success : EpidemiologyTheme.warning,
+              color: dossierPret
+                  ? EpidemiologyTheme.success
+                  : EpidemiologyTheme.warning,
             ),
           ),
         ),
@@ -211,12 +273,14 @@ class TetanusSummaryPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: alerts
-          .map((a) => TetanusAlertItem(
-                icon: a.$1,
-                title: a.$2,
-                message: a.$3,
-                color: _alertColor(a.$4),
-              ))
+          .map(
+            (a) => TetanusAlertItem(
+              icon: a.$1,
+              title: a.$2,
+              message: a.$3,
+              color: _alertColor(a.$4),
+            ),
+          )
           .toList(),
     );
   }
